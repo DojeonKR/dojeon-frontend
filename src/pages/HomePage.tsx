@@ -17,9 +17,10 @@ const tabs = [
 interface HomePageProps {
   userName: string
   onOpenPractice: () => void
+  onOpenGrammarPractice: () => void
 }
 
-function HomePage({ userName, onOpenPractice }: HomePageProps) {
+function HomePage({ userName, onOpenPractice, onOpenGrammarPractice }: HomePageProps) {
   const [selectedGoalType, setSelectedGoalType] = useState<'today' | 'week'>('today')
   const goalData = {
     today: {
@@ -131,7 +132,11 @@ function HomePage({ userName, onOpenPractice }: HomePageProps) {
           </button>
         </section>
 
-        <section className="home-card practice-card">
+        <button
+          type="button"
+          className="home-card practice-card practice-card-button"
+          onClick={onOpenGrammarPractice}
+        >
           <h3 className="practice-title">Practice</h3>
           <div className="practice-content" role="list">
             <p className="practice-item" role="listitem">
@@ -153,7 +158,7 @@ function HomePage({ userName, onOpenPractice }: HomePageProps) {
               Practice 6: Speaking repeats
             </p>
           </div>
-        </section>
+        </button>
       </section>
       <nav className="home-bottom-nav">
         {tabs.map((tab) => (
