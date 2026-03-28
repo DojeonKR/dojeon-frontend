@@ -2,14 +2,21 @@ import './LoginPage.css'
 
 interface LoginPageProps {
   onSignUp: () => void
+  onLogin?: () => void
 }
 
-function LoginPage({ onSignUp }: LoginPageProps) {
+function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
   return (
     <main className="login-screen">
       <div className="login-profile" />
 
-      <form className="login-form" onSubmit={(e) => e.preventDefault()}>
+      <form
+        className="login-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          onLogin?.()
+        }}
+      >
         <label className="field-wrap">
           <span className="field-label">Email</span>
           <input type="email" className="field" />

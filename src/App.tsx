@@ -5,10 +5,12 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import VerifySuccessPage from './pages/VerifySuccessPage'
+import HomePage from './pages/HomePage'
 
 function App() {
   const [screen, setScreen] = useState<
     'splash' | 'login' | 'signup' | 'verify-email' | 'verify-success'
+    | 'home'
   >('login')
   const [signupEmail, setSignupEmail] = useState('')
 
@@ -31,9 +33,14 @@ function App() {
           onVerifySuccess={() => setScreen('verify-success')}
         />
       ) : screen === 'verify-success' ? (
-        <VerifySuccessPage onStartLearning={() => setScreen('login')} />
+        <VerifySuccessPage onStartLearning={() => setScreen('home')} />
+      ) : screen === 'home' ? (
+        <HomePage />
       ) : (
-        <LoginPage onSignUp={() => setScreen('signup')} />
+        <LoginPage
+          onSignUp={() => setScreen('signup')}
+          onLogin={() => setScreen('home')}
+        />
       )}
     </div>
   )
