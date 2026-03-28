@@ -5,36 +5,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 24px;
+  justify-content: flex-start;
+  gap: 0;
+  padding: clamp(100px, 14.6vh, 123px) 24px 24px;
   box-sizing: border-box;
 }
 
 .login-profile {
-  width: 150px;
-  height: 150px;
+  width: 182px;
+  height: 182px;
   border-radius: 50%;
   background: #d9d9d9;
 }
 
 .login-form {
   width: min(360px, 100%);
-  display: grid;
-  gap: 18px;
+  margin-top: 59px;
+  display: flex;
+  flex-direction: column;
 }
 
 .field-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+}
+
+.field-wrap-large-gap {
+  gap: 4px;
 }
 
 .field-label {
   text-align: left;
-  font-size: 13px;
+  font-size: 16px;
   color: #707070;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .field {
@@ -57,9 +62,12 @@
 
 .forgot-password {
   margin: 0;
-  justify-self: end;
+  margin-top: 36px;
+  align-self: end;
   color: #c3c3c3;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: right;
   padding-top: 4px;
 }
 
@@ -73,10 +81,12 @@
 }
 
 .login-btn {
-  margin-top: 4px;
-  background: #a8a8a8;
+  margin-top: 17px;
+  background: #a0a0a0;
   border: 1px solid #8f8f8f;
-  color: #1f2933;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .login-btn:hover {
@@ -84,14 +94,20 @@
 }
 
 .google-btn {
-  color: #0f172a;
+  color: #000000;
+  margin-top: 10px;
+  background: #ffffff;
+  border: 1px solid #8f8f8f;
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .signup-copy {
   margin: 0;
-  color: #475569;
-  font-size: 14px;
-  margin-top: 4px;
+  color: #c3c3c3;
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 49px;
 }
 
 .signup-copy a {
@@ -110,9 +126,9 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #000000;
-  font-size: 14px;
-  font-weight: 700;
+  color: #848484;
+  font-size: 16px;
+  font-weight: 400;
   cursor: pointer;
 }
 

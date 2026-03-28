@@ -15,12 +15,12 @@ function LoginPage({ onSignUp }: LoginPageProps) {
           <input type="email" className="field" />
         </label>
 
-        <label className="field-wrap">
+        <label className="field-wrap field-wrap-large-gap">
           <span className="field-label">Password</span>
           <input type="password" className="field" />
         </label>
 
-        <p className="forgot-password">forgot password?</p>
+        <p className="forgot-password">Forget password?</p>
 
         <button type="submit" className="btn btn-primary login-btn">
           Login
