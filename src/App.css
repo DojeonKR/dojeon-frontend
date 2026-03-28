@@ -16,15 +16,16 @@
 #root {
   margin: 0 auto;
   min-height: 100svh;
-  max-height: 100svh;
   display: block;
   width: min(414px, 100%);
   border: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .app-root {
   min-height: 100svh;
+  overflow-y: auto;
 }
 
 .btn {

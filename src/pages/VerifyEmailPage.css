@@ -1,0 +1,143 @@
+.verify-email-screen {
+  justify-content: flex-start;
+}
+
+.verify-email-screen .signup-header {
+  margin-top: 0;
+}
+
+.verify-email-content {
+  width: min(360px, 100%);
+  margin-top: 32px;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+
+.verify-email-message {
+  margin: 0;
+  color: #707070;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.45;
+  letter-spacing: 0;
+  max-width: 320px;
+}
+
+.verify-code-fields {
+  margin-top: 72px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.verify-code-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.verify-code-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: 60px;
+  line-height: 1;
+  color: #bfbfbf;
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.verify-code-input {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  border: 1px solid #d2d2d2;
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 500;
+  outline: none;
+  padding: 0;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
+  background: transparent;
+  background-clip: padding-box;
+  overflow: hidden;
+}
+
+.verify-code-input:focus-visible {
+  border-color: #94a3b8;
+}
+
+.verify-email-timer {
+  margin: 50px 0 0;
+  color: #848484;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.verify-email-resend {
+  margin: 50px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.verify-email-resend-title {
+  margin: 0;
+  color: #c3c3c3;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.verify-email-resend-action {
+  margin: 8px 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #848484;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+}
+
+.verify-email-resend-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.verify-email-resend-error {
+  margin: 8px 0 0;
+  color: #ff5f5f;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.verify-email-address {
+  color: #1f2933;
+  font-size: 18px;
+  font-weight: 700;
+}
