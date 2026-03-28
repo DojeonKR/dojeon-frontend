@@ -16,9 +16,10 @@ const tabs = [
 
 interface HomePageProps {
   userName: string
+  onOpenPractice: () => void
 }
 
-function HomePage({ userName }: HomePageProps) {
+function HomePage({ userName, onOpenPractice }: HomePageProps) {
   const [selectedGoalType, setSelectedGoalType] = useState<'today' | 'week'>('today')
   const goalData = {
     today: {
@@ -156,7 +157,16 @@ function HomePage({ userName }: HomePageProps) {
       </section>
       <nav className="home-bottom-nav">
         {tabs.map((tab) => (
-          <button type="button" className="home-tab" key={tab.label}>
+          <button
+            type="button"
+            className="home-tab"
+            key={tab.label}
+            onClick={() => {
+              if (tab.label === 'PRACTICE') {
+                onOpenPractice()
+              }
+            }}
+          >
             <img className="home-tab-icon" src={tab.icon} alt="" aria-hidden="true" />
             <span className="home-tab-label">{tab.label}</span>
           </button>
