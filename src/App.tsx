@@ -63,7 +63,11 @@ function App() {
           onVerifySuccess={() => setScreen('verify-success')}
         />
       ) : screen === 'verify-success' ? (
-        <VerifySuccessPage onStartLearning={handleEnterAfterAuth} />
+        <VerifySuccessPage
+          onStartLearning={() => {
+            setScreen('login')
+          }}
+        />
       ) : screen === 'onboarding' ? (
         <OnboardingPage
           onBack={() => setScreen('login')}
