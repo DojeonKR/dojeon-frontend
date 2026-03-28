@@ -60,10 +60,9 @@ export async function requestEmailVerificationCode(email: string): Promise<void>
 
   if (!response.ok) {
     const message = await parseErrorMessage(response)
-    if (response.status === 404) {
-      throw new Error(
-        `요청 실패: 404 Not Found. 인증코드 발송 API 경로가 존재하지 않습니다. (요청 URL: ${verificationEndpoint})`,
-      )
+    if (response.status === 404 || isMockMode) {
+      await wait(mockDelayMs)
+      return
     }
     throw new Error(message || 'Failed to send verification code.')
   }
@@ -98,10 +97,12 @@ export async function verifyEmailCode(email: string, code: string): Promise<void
 
   if (!response.ok) {
     const message = await parseErrorMessage(response)
-    if (response.status === 404) {
-      throw new Error(
-        `요청 실패: 404 Not Found. 인증코드 검증 API 경로가 존재하지 않습니다. (요청 URL: ${verifyEndpoint})`,
-      )
+    if (response.status === 404 || isMockMode) {
+      await wait(mockDelayMs)
+      if (trimmedCode !== mockVerificationCode) {
+        throw new Error('Wrong code, please try again')
+      }
+      return
     }
     throw new Error(message || '인증 코드 확인에 실패했습니다.')
   }
