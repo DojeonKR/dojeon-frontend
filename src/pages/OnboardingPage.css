@@ -1,0 +1,130 @@
+.onboarding-screen {
+  min-height: 100svh;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+
+.onboarding-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.onboarding-header {
+  padding-top: 8px;
+  margin-bottom: 16px;
+}
+
+.onboarding-back {
+  border: 0;
+  background: transparent;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 42px;
+}
+
+.progress-dot {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+.progress-dot.active {
+  background: #8a8a8a;
+}
+
+.onboarding-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.onboarding-question {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #111111;
+  font-weight: 600;
+}
+
+.onboarding-field-wrap {
+  margin-top: 22px;
+  display: block;
+}
+
+.onboarding-input {
+  width: 100%;
+  border: 1px solid #dfdfdf;
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 14px;
+  font-size: 16px;
+  color: #111111;
+  background: #f6f6f6;
+  box-sizing: border-box;
+}
+
+.onboarding-input::placeholder {
+  color: #b8b8b8;
+}
+
+.onboarding-input:focus {
+  outline: none;
+  border-color: #c0c0c0;
+  box-shadow: 0 0 0 3px rgba(140, 140, 140, 0.15);
+}
+
+.onboarding-next-btn {
+  margin-top: 34px;
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: #b2b2b2;
+  color: #111111;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.onboarding-next-btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 768px) {
+  .onboarding-screen {
+    max-width: 390px;
+    margin: 0 auto;
+  }
+}
