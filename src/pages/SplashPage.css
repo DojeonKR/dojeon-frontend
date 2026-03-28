@@ -13,17 +13,16 @@
 }
 
 .splash-character {
-  max-width: min(210px, 60vw);
-  max-height: 60vh;
-  width: auto;
-  height: auto;
+  width: 182px;
+  height: 201px;
   object-fit: contain;
 }
 
 .splash-title {
   margin: 0;
   color: #162f57;
-  font-size: 2.2rem;
+  font-size: 40px;
+  font-weight: 400;
   line-height: 1.1;
-  letter-spacing: 0.04em;
+  letter-spacing: normal;
 }
