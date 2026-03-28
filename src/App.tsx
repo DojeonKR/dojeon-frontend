@@ -7,6 +7,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage'
 import VerifySuccessPage from './pages/VerifySuccessPage'
 import OnboardingPage from './pages/OnboardingPage'
 import HomePage from './pages/HomePage'
+import PracticePage from './pages/PracticePage'
 
 const ONBOARDING_COMPLETED_KEY = 'dojeon:onboarding.completed'
 const ONBOARDING_USERNAME_KEY = 'dojeon:onboarding.username'
@@ -56,7 +57,7 @@ const clearOnboardingStorage = () => {
 function App() {
   const [screen, setScreen] = useState<
     'splash' | 'login' | 'signup' | 'verify-email' | 'verify-success'
-    | 'onboarding' | 'home'
+    | 'onboarding' | 'home' | 'practice'
   >('splash')
   const [signupEmail, setSignupEmail] = useState('')
   const [userName, setUserName] = useState(getOnboardingUsername)
@@ -149,7 +150,14 @@ function App() {
           }}
         />
       ) : screen === 'home' ? (
-        <HomePage userName={userName} />
+        <HomePage
+          userName={userName}
+          onOpenPractice={() => {
+            setScreen('practice')
+          }}
+        />
+      ) : screen === 'practice' ? (
+        <PracticePage />
       ) : (
         <LoginPage
           onSignUp={() => setScreen('signup')}
