@@ -1,0 +1,121 @@
+.login-screen {
+  width: 100%;
+  min-height: 100svh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.login-profile {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.login-form {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 18px;
+}
+
+.field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-label {
+  text-align: left;
+  font-size: 13px;
+  color: #707070;
+  font-weight: 600;
+}
+
+.field {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 13px 12px;
+  font-size: 15px;
+  min-height: 46px;
+  color: #111827;
+  background: #fff;
+  text-align: left;
+  outline: none;
+}
+
+.field:focus-visible {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px #dbeafe;
+}
+
+.forgot-password {
+  margin: 0;
+  justify-self: end;
+  color: #c3c3c3;
+  font-size: 14px;
+  padding-top: 4px;
+}
+
+.login-form .btn {
+  width: 100%;
+  min-width: 0;
+}
+
+.login-form .field {
+  margin: 0;
+}
+
+.login-btn {
+  margin-top: 4px;
+  background: #a8a8a8;
+  border: 1px solid #8f8f8f;
+  color: #1f2933;
+}
+
+.login-btn:hover {
+  filter: brightness(0.96);
+}
+
+.google-btn {
+  color: #0f172a;
+}
+
+.signup-copy {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.signup-copy a {
+  color: #0ea5e9;
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.signup-copy a:hover {
+  text-decoration: underline;
+}
+
+.signup-link-btn {
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signup-link-btn:hover {
+  text-decoration: underline;
+}

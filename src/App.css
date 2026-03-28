@@ -1,0 +1,59 @@
+:root {
+  --bg: #f4f2ef;
+  --surface: #ffffff;
+  --text: #1f2933;
+  --text-muted: #536175;
+  --line: #e7e2dc;
+  --accent: #0ea5e9;
+  --accent-strong: #0284c7;
+  --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  margin: 0 auto;
+  min-height: 100svh;
+  max-height: 100svh;
+  display: block;
+  width: min(414px, 100%);
+  border: 0;
+  overflow: hidden;
+}
+
+.app-root {
+  min-height: 100svh;
+}
+
+.btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 16px;
+  min-height: 42px;
+  min-width: 130px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+.btn:hover {
+  filter: brightness(0.97);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  color: #fff;
+}
+
+.btn-ghost {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #d8dfe7;
+}

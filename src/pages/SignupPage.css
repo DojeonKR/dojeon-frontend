@@ -1,0 +1,157 @@
+.signup-screen {
+  width: 100%;
+  min-height: 100svh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.signup-header {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.back-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.signup-title {
+  margin: 0;
+  color: #1f2933;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.signup-content {
+  width: min(360px, 100%);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  align-self: stretch;
+}
+
+.signup-form {
+  display: grid;
+  gap: 22px;
+}
+
+.field-wrap {
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+
+.signup-btn {
+  width: 100%;
+  margin-top: 0;
+}
+
+.field-error {
+  margin: 6px 0 0;
+  color: #ef4444;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+.terms-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.terms-divider {
+  height: 1px;
+  background: #efefef;
+  width: 100%;
+}
+
+.terms-list {
+  display: grid;
+  gap: 12px;
+}
+
+.terms-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.terms-check-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #d9d9d9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.terms-check-label,
+.terms-list-text {
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.terms-list-text {
+  color: #4b5563;
+}
+
+.terms-list-text em {
+  font-style: normal;
+  font-size: 12px;
+}
+
+.terms-list-text .required {
+  color: #ef4444;
+}
+
+.terms-list-text .optional {
+  color: #9ca3af;
+}
+
+.register-btn {
+  background: #a9a9a9;
+  border-color: #8f8f8f;
+  color: #1f2933;
+}
+
+.register-btn:hover {
+  filter: brightness(0.96);
+}
