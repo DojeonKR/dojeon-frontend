@@ -55,6 +55,17 @@
   outline: none;
 }
 
+.field:-webkit-autofill,
+.field:-webkit-autofill:hover,
+.field:-webkit-autofill:focus,
+.field:-webkit-autofill:active {
+  -webkit-text-fill-color: #111827;
+  -webkit-box-shadow: inset 0 0 0 1000px #ffffff;
+  box-shadow: inset 0 0 0 1000px #ffffff;
+  caret-color: #111827;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
 .field:focus-visible {
   border-color: #94a3b8;
   box-shadow: 0 0 0 3px #dbeafe;
