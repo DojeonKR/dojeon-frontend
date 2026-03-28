@@ -314,6 +314,15 @@
   min-height: 190px;
 }
 
+.practice-card-button {
+  padding: 16px;
+  gap: 16px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
 .start-btn {
   margin-top: 6px;
   width: 100%;

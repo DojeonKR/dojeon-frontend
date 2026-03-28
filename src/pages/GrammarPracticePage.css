@@ -1,0 +1,478 @@
+.grammar-practice-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+}
+
+.grammar-practice-content {
+  width: 100%;
+  min-height: 100dvh;
+  padding: 0 24px calc(24px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.grammar-practice-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding-top: 8px;
+}
+
+.grammar-practice-back {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.grammar-practice-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.grammar-practice-header-review {
+  min-height: 56px;
+}
+
+.grammar-practice-close {
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.grammar-practice-close-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.grammar-practice-title {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.grammar-practice-review-screen {
+  flex: 1;
+}
+
+.grammar-practice-progress {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  margin-top: 22px;
+}
+
+.grammar-practice-progress-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #d9d9d9;
+  transform: translateY(-50%);
+}
+
+.grammar-practice-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 6px;
+  border-radius: 999px;
+  background: #787878;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.grammar-practice-progress-dot {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.grammar-practice-progress-dot-past {
+  background: #d9d9d9;
+}
+
+.grammar-practice-progress-dot-upcoming {
+  background: #787878;
+}
+
+.grammar-practice-guide {
+  margin: 29px 0 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-question-card {
+  width: min(350px, 100%);
+  height: 210px;
+  margin-top: 29px;
+  border-radius: 10px;
+  background: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24px 20px;
+}
+
+.grammar-practice-question-card-correct {
+  background: #fcf2ff;
+}
+
+.grammar-practice-question-card-wrong {
+  background: #ffeded;
+}
+
+.grammar-practice-question-card-make {
+  flex-direction: column;
+}
+
+.grammar-practice-question-stack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+}
+
+.grammar-practice-correct-feedback {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 22px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.grammar-practice-correct-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d8a6e6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.grammar-practice-correct-icon-mark {
+  width: 17px;
+  height: 13px;
+  display: block;
+}
+
+.grammar-practice-correct-text {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-correct-feedback-make .grammar-practice-correct-text {
+  color: #d8a6e6;
+}
+
+.grammar-practice-wrong-feedback {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 22px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.grammar-practice-wrong-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff5f5f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.grammar-practice-wrong-icon-mark {
+  display: block;
+}
+
+.grammar-practice-wrong-text {
+  color: #ff5f5f;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+}
+
+.grammar-practice-answer-column {
+  position: relative;
+  width: 90px;
+  height: 30px;
+}
+
+.grammar-practice-answer-column-make {
+  width: min(240px, 100%);
+  height: 46px;
+}
+
+.grammar-practice-question-text {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-answer-slot {
+  flex: 0 0 auto;
+  width: 90px;
+  height: 30px;
+  border-radius: 3px;
+  background: #cccccc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-answer-input {
+  width: 90px;
+  height: 30px;
+  border: 0;
+  border-radius: 3px;
+  background: #cccccc;
+  padding: 0 8px;
+  box-sizing: border-box;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.grammar-practice-answer-input:focus {
+  outline: none;
+}
+
+.grammar-practice-make-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-make-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grammar-practice-make-divider {
+  width: 1px;
+  height: 20px;
+  background: #bcbcbc;
+  flex: 0 0 auto;
+}
+
+.grammar-practice-make-input-wrap {
+  width: min(240px, 100%);
+  display: flex;
+  justify-content: center;
+}
+
+.grammar-practice-make-input-wrap .grammar-practice-answer-input {
+  width: 100%;
+}
+
+.grammar-practice-question-stack-make {
+  flex-direction: column;
+  gap: 22px;
+  width: min(240px, 100%);
+}
+
+.grammar-practice-question-dot {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.grammar-practice-correct-answer {
+  position: absolute;
+  top: calc(100% - 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: auto;
+  color: #d8a6e6;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.grammar-practice-correct-answer-make {
+  width: max-content;
+  max-width: 100%;
+}
+
+.grammar-practice-correct-answer-fill {
+  top: calc(100% + 6px);
+}
+
+.grammar-practice-options {
+  margin-top: 20px;
+  width: min(350px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, 170px);
+  gap: 12px 10px;
+  justify-content: center;
+}
+
+.grammar-practice-option-button {
+  width: 170px;
+  height: 68px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #e9e9e9;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.grammar-practice-option-button:disabled {
+  cursor: default;
+}
+
+.grammar-practice-option-button-correct {
+  border-color: #d8a6e6;
+  background: #fcf2ff;
+  color: #d8a6e6;
+}
+
+.grammar-practice-option-button-wrong {
+  border-color: #ff5f5f;
+  color: #ff5f5f;
+}
+
+.grammar-practice-hint-wrap {
+  width: min(350px, 100%);
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.grammar-practice-hint-button {
+  width: 106px;
+  height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #434343;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.grammar-practice-learn-more-wrap {
+  width: min(350px, 100%);
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.grammar-practice-learn-more-button {
+  width: 119px;
+  height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #434343;
+  color: #e2e2e2;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.grammar-practice-next-button {
+  width: min(350px, 100%);
+  height: 54px;
+  margin-top: auto;
+  border: 0;
+  border-radius: 10px;
+  background: #a0a0a0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  align-self: center;
+  position: sticky;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 2;
+}
+
+.grammar-practice-next-button-fill {
+  margin-top: auto;
+}
