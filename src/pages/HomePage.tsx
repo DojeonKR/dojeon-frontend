@@ -14,7 +14,11 @@ const tabs = [
   { icon: profileIcon, label: 'PROFILE' },
 ]
 
-function HomePage() {
+interface HomePageProps {
+  userName: string
+}
+
+function HomePage({ userName }: HomePageProps) {
   const [selectedGoalType, setSelectedGoalType] = useState<'today' | 'week'>('today')
   const goalData = {
     today: {
@@ -38,7 +42,7 @@ function HomePage() {
     <main className="home-screen">
       <section className="home-content">
         <header className="home-greeting">
-          <p className="home-greeting-hi">Hi, Jinri</p>
+          <p className="home-greeting-hi">Hi, {userName}</p>
           <p className="home-greeting-welcome">Welcome back</p>
         </header>
 
