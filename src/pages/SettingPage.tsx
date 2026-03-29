@@ -2,6 +2,9 @@ import './SettingPage.css'
 import accountIcon from '../assets/account_icon.png'
 import preferenceIcon from '../assets/preference_icon.png'
 import notificationIcon from '../assets/notification_icon.png'
+import contactSupportIcon from '../assets/Contact_Support_icon.png'
+import faqIcon from '../assets/FAQ_icon.png'
+import feedbackIcon from '../assets/Feedback_icon.png'
 
 interface SettingPageProps {
   onBack: () => void
@@ -87,46 +90,25 @@ function SettingPage({ onBack, onOpenAccountInfo, onOpenPreferences }: SettingPa
           <h2 className="setting-section-title">Support</h2>
           <div className="setting-account-card" role="list" aria-label="support settings">
             <button type="button" className="setting-account-item" role="listitem">
-              <span className="setting-inline-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 18H12.01M9.4 9.2C9.4 7.72 10.58 6.6 12 6.6C13.42 6.6 14.6 7.72 14.6 9.2C14.6 10.96 12 11.44 12 13"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
+              <img src={faqIcon} alt="" className="setting-account-icon" aria-hidden="true" />
               <span className="setting-account-label">FAQ</span>
             </button>
             <button type="button" className="setting-account-item" role="listitem">
-              <span className="setting-inline-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M8.5 10C8.5 7.51 10.51 5.5 13 5.5C15.49 5.5 17.5 7.51 17.5 10C17.5 12.49 15.49 14.5 13 14.5H11L7.5 18V14.08C6.6 13.17 6 11.89 6 10.5"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
+              <img
+                src={contactSupportIcon}
+                alt=""
+                className="setting-account-icon"
+                aria-hidden="true"
+              />
               <span className="setting-account-label">Contact Support</span>
             </button>
             <button type="button" className="setting-account-item" role="listitem">
-              <span className="setting-inline-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M5 7.5C5 6.67 5.67 6 6.5 6H17.5C18.33 6 19 6.67 19 7.5V14.5C19 15.33 18.33 16 17.5 16H10L6 19V16H6.5C5.67 16 5 15.33 5 14.5V7.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
+              <img
+                src={feedbackIcon}
+                alt=""
+                className="setting-account-icon"
+                aria-hidden="true"
+              />
               <span className="setting-account-label">Feedback</span>
             </button>
           </div>

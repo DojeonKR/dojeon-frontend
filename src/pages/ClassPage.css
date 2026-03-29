@@ -1,0 +1,175 @@
+.class-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 84px;
+  position: relative;
+}
+
+.class-content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.class-progress-card {
+  width: 100%;
+  min-height: 140px;
+  margin-top: 0;
+  padding: 52px 20px 23px;
+  box-sizing: border-box;
+  background: #f3f3f3;
+  border-radius: 0 0 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.class-progress-title {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.class-progress-complete {
+  margin: 4px 0 0;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.class-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  margin-top: 12px;
+}
+
+.class-progress-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #d9d9d9;
+  transform: translateY(-50%);
+}
+
+.class-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 6px;
+  border-radius: 999px;
+  background: #787878;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.class-progress-dot {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.class-progress-dot-past {
+  background: #d9d9d9;
+}
+
+.class-progress-dot-upcoming {
+  background: #787878;
+}
+
+.class-course-list {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.class-course-item {
+  width: 100%;
+  height: 66px;
+  border: 0;
+  border-radius: 10px;
+  background: #dcdcdc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.class-course-label {
+  color: #000000;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.class-course-arrow {
+  color: #000000;
+  flex: 0 0 auto;
+}
+
+.class-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: min(390px, 100%);
+  height: 80px;
+  padding: 0 20px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: #cfcfcf;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.class-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #000000;
+  cursor: pointer;
+}
+
+.class-tab-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.class-tab-label {
+  color: #000000;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.class-tab-active .class-tab-label {
+  font-weight: 600;
+}
