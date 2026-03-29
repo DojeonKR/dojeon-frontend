@@ -10,7 +10,7 @@ import { requestEmailVerificationCode } from '../services/auth'
 
 interface SignupPageProps {
   onBack: () => void
-  onSignupSuccess: (email: string) => void
+  onSignupSuccess: (email: string, password: string) => void
 }
 
 function SignupPage({ onBack, onSignupSuccess }: SignupPageProps) {
@@ -174,7 +174,7 @@ function SignupPage({ onBack, onSignupSuccess }: SignupPageProps) {
     setIsSubmitting(true)
     try {
       await requestEmailVerificationCode(email)
-      onSignupSuccess(email)
+      onSignupSuccess(email, password)
       setErrors({ email: '', password: '', confirmPassword: '', terms: '' })
     } catch (error) {
       const message =

@@ -1,0 +1,170 @@
+.setting-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+}
+
+.setting-content {
+  width: 100%;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.setting-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding-top: 8px;
+}
+
+.setting-back {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.setting-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.setting-title {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.setting-section {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.setting-section-support {
+  margin-top: 24px;
+}
+
+.setting-section-title {
+  margin: 0;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.setting-account-card {
+  width: min(350px, 100%);
+  height: 180px;
+  margin-top: 10px;
+  background: #d9d9d9;
+  border-radius: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.setting-account-item {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  position: relative;
+}
+
+.setting-account-item + .setting-account-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: #bcbcbc;
+}
+
+.setting-account-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.setting-inline-icon {
+  width: 24px;
+  height: 24px;
+  color: #000000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.setting-account-label {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.setting-signout-button {
+  width: min(350px, 100%);
+  height: 55px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 10px;
+  background: #d9d9d9;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  align-self: center;
+}
+
+.setting-policy-links {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.setting-policy-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #707070;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  text-align: left;
+}

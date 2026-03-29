@@ -9,9 +9,21 @@ import OnboardingPage from './pages/OnboardingPage'
 import HomePage from './pages/HomePage'
 import PracticePage from './pages/PracticePage'
 import GrammarPracticePage from './pages/GrammarPracticePage'
+import ClassPage from './pages/ClassPage'
+import SettingPage from './pages/SettingPage'
+import AccountInfoPage from './pages/AccountInfoPage'
+import PreferencesPage from './pages/PreferencesPage'
 
 const ONBOARDING_COMPLETED_KEY = 'dojeon:onboarding.completed'
 const ONBOARDING_USERNAME_KEY = 'dojeon:onboarding.username'
+const ACCOUNT_EMAIL_KEY = 'dojeon:account.email'
+const ACCOUNT_PASSWORD_KEY = 'dojeon:account.password'
+const ACCOUNT_AGE_RANGE_KEY = 'dojeon:account.ageRange'
+const ACCOUNT_PHONE_NUMBER_KEY = 'dojeon:account.phoneNumber'
+const ACCOUNT_LANGUAGE_KEY = 'dojeon:account.language'
+const ACCOUNT_KOREAN_LEVEL_KEY = 'dojeon:account.koreanLevel'
+const ACCOUNT_DAILY_GOAL_KEY = 'dojeon:account.dailyGoal'
+const ACCOUNT_KOREAN_GOAL_KEY = 'dojeon:account.koreanGoal'
 
 const readLocalStorageItem = (key: string) => {
   try {
@@ -53,15 +65,63 @@ const saveOnboardingUsername = (name: string) => {
 const clearOnboardingStorage = () => {
   removeLocalStorageItem(ONBOARDING_COMPLETED_KEY)
   removeLocalStorageItem(ONBOARDING_USERNAME_KEY)
+  removeLocalStorageItem(ACCOUNT_EMAIL_KEY)
+  removeLocalStorageItem(ACCOUNT_PASSWORD_KEY)
+  removeLocalStorageItem(ACCOUNT_AGE_RANGE_KEY)
+  removeLocalStorageItem(ACCOUNT_PHONE_NUMBER_KEY)
+  removeLocalStorageItem(ACCOUNT_LANGUAGE_KEY)
+  removeLocalStorageItem(ACCOUNT_KOREAN_LEVEL_KEY)
+  removeLocalStorageItem(ACCOUNT_DAILY_GOAL_KEY)
+  removeLocalStorageItem(ACCOUNT_KOREAN_GOAL_KEY)
+}
+
+const getStoredAccountEmail = () => {
+  return readLocalStorageItem(ACCOUNT_EMAIL_KEY) ?? ''
+}
+
+const getStoredAccountPassword = () => {
+  return readLocalStorageItem(ACCOUNT_PASSWORD_KEY) ?? ''
+}
+
+const getStoredAgeRange = () => {
+  return readLocalStorageItem(ACCOUNT_AGE_RANGE_KEY) ?? ''
+}
+
+const getStoredPhoneNumber = () => {
+  return readLocalStorageItem(ACCOUNT_PHONE_NUMBER_KEY) ?? ''
+}
+
+const getStoredLanguage = () => {
+  return readLocalStorageItem(ACCOUNT_LANGUAGE_KEY) ?? ''
+}
+
+const getStoredKoreanLevel = () => {
+  return readLocalStorageItem(ACCOUNT_KOREAN_LEVEL_KEY) ?? ''
+}
+
+const getStoredDailyGoal = () => {
+  return readLocalStorageItem(ACCOUNT_DAILY_GOAL_KEY) ?? ''
+}
+
+const getStoredKoreanGoal = () => {
+  return readLocalStorageItem(ACCOUNT_KOREAN_GOAL_KEY) ?? ''
 }
 
 function App() {
   const [screen, setScreen] = useState<
     'splash' | 'login' | 'signup' | 'verify-email' | 'verify-success'
-    | 'onboarding' | 'home' | 'practice' | 'grammar-practice'
+    | 'onboarding' | 'home' | 'class' | 'practice' | 'grammar-practice' | 'setting'
+    | 'account-info' | 'preferences'
   >('splash')
-  const [signupEmail, setSignupEmail] = useState('')
+  const [signupEmail, setSignupEmail] = useState(getStoredAccountEmail)
+  const [accountPassword, setAccountPassword] = useState(getStoredAccountPassword)
   const [userName, setUserName] = useState(getOnboardingUsername)
+  const [ageRange, setAgeRange] = useState(getStoredAgeRange)
+  const [phoneNumber, setPhoneNumber] = useState(getStoredPhoneNumber)
+  const [language, setLanguage] = useState(getStoredLanguage)
+  const [koreanLevel, setKoreanLevel] = useState(getStoredKoreanLevel)
+  const [dailyGoal, setDailyGoal] = useState(getStoredDailyGoal)
+  const [koreanGoal, setKoreanGoal] = useState(getStoredKoreanGoal)
 
   useEffect(() => {
     if (screen !== 'splash') {
@@ -108,7 +168,15 @@ function App() {
           }}
           onClick={() => {
             clearOnboardingStorage()
+            setSignupEmail('')
+            setAccountPassword('')
             setUserName('Jinri')
+            setAgeRange('')
+            setPhoneNumber('')
+            setLanguage('')
+            setKoreanLevel('')
+            setDailyGoal('')
+            setKoreanGoal('')
             setScreen('login')
           }}
         >
@@ -121,8 +189,11 @@ function App() {
       ) : screen === 'signup' ? (
         <SignupPage
           onBack={() => setScreen('login')}
-          onSignupSuccess={(email) => {
+          onSignupSuccess={(email, password) => {
             setSignupEmail(email)
+            setAccountPassword(password)
+            writeLocalStorageItem(ACCOUNT_EMAIL_KEY, email)
+            writeLocalStorageItem(ACCOUNT_PASSWORD_KEY, password)
             removeLocalStorageItem(ONBOARDING_COMPLETED_KEY)
             setScreen('verify-email')
           }}
@@ -144,8 +215,23 @@ function App() {
           onBack={() => setScreen('login')}
           onComplete={(values) => {
             const savedName = values.name?.trim() || 'Jinri'
+            const savedAgeRange = values.ageRange ?? ''
+            const savedLanguage = values.motherLanguage ?? ''
+            const savedKoreanLevel = values.koreanLevel ?? ''
+            const savedDailyGoal = values.dailyStudyTime ?? ''
+            const savedKoreanGoal = values.goal ?? ''
             setUserName(savedName)
+            setAgeRange(savedAgeRange)
+            setLanguage(savedLanguage)
+            setKoreanLevel(savedKoreanLevel)
+            setDailyGoal(savedDailyGoal)
+            setKoreanGoal(savedKoreanGoal)
             saveOnboardingUsername(savedName)
+            writeLocalStorageItem(ACCOUNT_AGE_RANGE_KEY, savedAgeRange)
+            writeLocalStorageItem(ACCOUNT_LANGUAGE_KEY, savedLanguage)
+            writeLocalStorageItem(ACCOUNT_KOREAN_LEVEL_KEY, savedKoreanLevel)
+            writeLocalStorageItem(ACCOUNT_DAILY_GOAL_KEY, savedDailyGoal)
+            writeLocalStorageItem(ACCOUNT_KOREAN_GOAL_KEY, savedKoreanGoal)
             markOnboardingComplete()
             setScreen('home')
           }}
@@ -153,6 +239,12 @@ function App() {
       ) : screen === 'home' ? (
         <HomePage
           userName={userName}
+          onOpenClass={() => {
+            setScreen('class')
+          }}
+          onOpenProfile={() => {
+            setScreen('setting')
+          }}
           onOpenPractice={() => {
             setScreen('practice')
           }}
@@ -160,10 +252,77 @@ function App() {
             setScreen('grammar-practice')
           }}
         />
+      ) : screen === 'class' ? (
+        <ClassPage
+          onOpenHome={() => {
+            setScreen('home')
+          }}
+          onOpenPractice={() => {
+            setScreen('practice')
+          }}
+        />
       ) : screen === 'practice' ? (
         <PracticePage
           onBack={() => {
             setScreen('home')
+          }}
+        />
+      ) : screen === 'setting' ? (
+        <SettingPage
+          onBack={() => {
+            setScreen('home')
+          }}
+          onOpenAccountInfo={() => {
+            setScreen('account-info')
+          }}
+          onOpenPreferences={() => {
+            setScreen('preferences')
+          }}
+        />
+      ) : screen === 'account-info' ? (
+        <AccountInfoPage
+          email={signupEmail}
+          username={signupEmail ? signupEmail.split('@')[0] : userName}
+          nickname={userName}
+          password={accountPassword}
+          phoneNumber={phoneNumber}
+          ageGroupOrBirthday={ageRange}
+          onSave={(values) => {
+            const nextNickname = values.nickname.trim() || 'Jinri'
+            const nextPassword = values.password
+            const nextPhoneNumber = values.phoneNumber.trim()
+            const nextAgeGroupOrBirthday = values.ageGroupOrBirthday.trim()
+
+            setUserName(nextNickname)
+            setAccountPassword(nextPassword)
+            setPhoneNumber(nextPhoneNumber)
+            setAgeRange(nextAgeGroupOrBirthday)
+
+            saveOnboardingUsername(nextNickname)
+            writeLocalStorageItem(ACCOUNT_PASSWORD_KEY, nextPassword)
+            writeLocalStorageItem(ACCOUNT_PHONE_NUMBER_KEY, nextPhoneNumber)
+            writeLocalStorageItem(ACCOUNT_AGE_RANGE_KEY, nextAgeGroupOrBirthday)
+          }}
+          onBack={() => {
+            setScreen('setting')
+          }}
+        />
+      ) : screen === 'preferences' ? (
+        <PreferencesPage
+          language={language}
+          koreanLevel={koreanLevel}
+          dailyGoal={dailyGoal}
+          koreanGoal={koreanGoal}
+          onSave={(values) => {
+            setLanguage(values.language)
+            setDailyGoal(values.dailyGoal)
+            setKoreanGoal(values.koreanGoal)
+            writeLocalStorageItem(ACCOUNT_LANGUAGE_KEY, values.language)
+            writeLocalStorageItem(ACCOUNT_DAILY_GOAL_KEY, values.dailyGoal)
+            writeLocalStorageItem(ACCOUNT_KOREAN_GOAL_KEY, values.koreanGoal)
+          }}
+          onBack={() => {
+            setScreen('setting')
           }}
         />
       ) : screen === 'grammar-practice' ? (
@@ -175,7 +334,11 @@ function App() {
       ) : (
         <LoginPage
           onSignUp={() => setScreen('signup')}
-          onLogin={() => {
+          onLogin={(credentials) => {
+            setSignupEmail(credentials.email)
+            setAccountPassword(credentials.password)
+            writeLocalStorageItem(ACCOUNT_EMAIL_KEY, credentials.email)
+            writeLocalStorageItem(ACCOUNT_PASSWORD_KEY, credentials.password)
             handleEnterAfterAuth()
           }}
         />

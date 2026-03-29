@@ -16,11 +16,19 @@ const tabs = [
 
 interface HomePageProps {
   userName: string
+  onOpenClass: () => void
+  onOpenProfile: () => void
   onOpenPractice: () => void
   onOpenGrammarPractice: () => void
 }
 
-function HomePage({ userName, onOpenPractice, onOpenGrammarPractice }: HomePageProps) {
+function HomePage({
+  userName,
+  onOpenClass,
+  onOpenProfile,
+  onOpenPractice,
+  onOpenGrammarPractice,
+}: HomePageProps) {
   const [selectedGoalType, setSelectedGoalType] = useState<'today' | 'week'>('today')
   const goalData = {
     today: {
@@ -167,8 +175,16 @@ function HomePage({ userName, onOpenPractice, onOpenGrammarPractice }: HomePageP
             className="home-tab"
             key={tab.label}
             onClick={() => {
+              if (tab.label === 'CLASS') {
+                onOpenClass()
+              }
+
               if (tab.label === 'PRACTICE') {
                 onOpenPractice()
+              }
+
+              if (tab.label === 'PROFILE') {
+                onOpenProfile()
               }
             }}
           >

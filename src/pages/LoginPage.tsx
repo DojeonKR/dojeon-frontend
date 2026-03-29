@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import './LoginPage.css'
 
 interface LoginPageProps {
   onSignUp: () => void
-  onLogin?: () => void
+  onLogin?: (credentials: { email: string; password: string }) => void
 }
 
 function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
   return (
     <main className="login-screen">
       <div className="login-profile" />
@@ -14,17 +18,30 @@ function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
         className="login-form"
         onSubmit={(e) => {
           e.preventDefault()
-          onLogin?.()
+          onLogin?.({
+            email: email.trim(),
+            password,
+          })
         }}
       >
         <label className="field-wrap">
           <span className="field-label">Email</span>
-          <input type="email" className="field" />
+          <input
+            type="email"
+            className="field"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
 
         <label className="field-wrap field-wrap-large-gap">
           <span className="field-label">Password</span>
-          <input type="password" className="field" />
+          <input
+            type="password"
+            className="field"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </label>
 
         <p className="forgot-password">Forget password?</p>
