@@ -1,0 +1,245 @@
+.notebook-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 84px;
+  position: relative;
+}
+
+.notebook-content {
+  width: 100%;
+  flex: 1;
+  padding: 57px 20px 0;
+  box-sizing: border-box;
+}
+
+.notebook-title {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.notebook-section {
+  margin-top: 20px;
+}
+
+.notebook-section-grammar {
+  margin-top: 30px;
+}
+
+.notebook-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notebook-section-title {
+  margin: 0;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.notebook-section-link,
+.notebook-card-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #979797;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.notebook-card-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.notebook-card {
+  width: 170px;
+  height: 171px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 14px 14px 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-card-title {
+  margin: 0;
+  color: #555555;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.notebook-card-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notebook-card-list p {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.notebook-card-list-bulleted p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notebook-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #000000;
+  flex: 0 0 auto;
+}
+
+.notebook-card-link {
+  margin-top: auto;
+  align-self: flex-end;
+}
+
+.notebook-grammar-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notebook-grammar-card {
+  width: 350px;
+  max-width: 100%;
+  height: 84px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 11px 16px 13px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.notebook-grammar-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notebook-grammar-course {
+  margin: 0;
+  color: #555555;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.notebook-grammar-badge {
+  width: 61px;
+  height: 22px;
+  border-radius: 4px;
+  background: #9f9f9f;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.notebook-grammar-bottom {
+  margin-top: 13px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.notebook-grammar-topic {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  transform: translateY(-2px);
+}
+
+.notebook-grammar-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  display: block;
+  object-fit: contain;
+  flex: 0 0 auto;
+  transform: translateY(-50%);
+}
+
+.notebook-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: min(390px, 100%);
+  height: 80px;
+  padding: 0 20px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: #cfcfcf;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notebook-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #000000;
+  cursor: pointer;
+}
+
+.notebook-tab-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.notebook-tab-label {
+  color: #000000;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.notebook-tab-active .notebook-tab-label {
+  font-weight: 600;
+}
