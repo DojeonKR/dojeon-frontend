@@ -174,7 +174,58 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
               : 'Choose the correct answer.'}
         </p>
         )}
-        {isReviewStep ? <section className="grammar-practice-review-screen" /> : null}
+        {isReviewStep ? (
+          <section className="grammar-practice-review-screen">
+            <section className="grammar-practice-review-section">
+              <h2 className="grammar-practice-review-question">How was this class?</h2>
+              <div className="grammar-practice-review-choice-row" role="list" aria-label="class difficulty">
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="Easy" />
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="Normal" />
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="Hard" />
+              </div>
+              <div className="grammar-practice-review-label-row grammar-practice-review-label-row-three">
+                <span>easy</span>
+                <span>normal</span>
+                <span>hard</span>
+              </div>
+            </section>
+
+            <section className="grammar-practice-review-section grammar-practice-review-section-complete">
+              <h2 className="grammar-practice-review-subtitle">Mark has complete?</h2>
+              <div className="grammar-practice-review-choice-row grammar-practice-review-choice-row-binary" role="list" aria-label="mark complete">
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="Yes" />
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="No" />
+              </div>
+              <div className="grammar-practice-review-label-row grammar-practice-review-label-row-binary">
+                <span>YES</span>
+                <span>NO</span>
+              </div>
+            </section>
+
+            <section className="grammar-practice-review-section grammar-practice-review-section-notebook">
+              <h2 className="grammar-practice-review-question">
+                Save grammer to personal notebook?
+              </h2>
+              <div className="grammar-practice-review-choice-row grammar-practice-review-choice-row-binary" role="list" aria-label="save grammar to personal notebook">
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="Yes" />
+                <button type="button" className="grammar-practice-review-choice-button" role="listitem" aria-label="No" />
+              </div>
+              <div className="grammar-practice-review-label-row grammar-practice-review-label-row-binary">
+                <span>YES</span>
+                <span>NO</span>
+              </div>
+            </section>
+
+            <div className="grammar-practice-review-action-row">
+              <button type="button" className="grammar-practice-review-action-button">
+                Next grammer
+              </button>
+              <button type="button" className="grammar-practice-review-action-button">
+                To reading
+              </button>
+            </div>
+          </section>
+        ) : null}
         {!isReviewStep && isMakeStep ? (
           <>
             <section
