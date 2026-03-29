@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './GrammarPracticePage.css'
 import checkIconWhite from '../assets/check_icon_white.svg'
 
@@ -7,19 +7,25 @@ interface GrammarPracticePageProps {
 }
 
 interface PracticeStateSnapshot {
-  practiceStep: 'choice' | 'fill' | 'make' | 'review'
+  practiceStep: 'choice' | 'fill' | 'make' | 'review' | 'reading'
   selectedAnswer: string
   revealedAnswers: string[]
   typedAnswer: string
   submittedTypedAnswer: string
   makeSentenceAnswer: string
   submittedMakeSentenceAnswer: string
+  readingQuestionIndex: number
+  readingAnswers: Record<number, string>
+  readingBlankAnswers: {
+    meeting: string
+    reason: string
+  }
 }
 
 function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const fillCorrectAnswer = '마시다'
   const makeCorrectAnswer = '준호씨가 커피를 마신다.'
-  const [practiceStep, setPracticeStep] = useState<'choice' | 'fill' | 'make' | 'review'>('choice')
+  const [practiceStep, setPracticeStep] = useState<'choice' | 'fill' | 'make' | 'review' | 'reading'>('choice')
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [revealedAnswers, setRevealedAnswers] = useState<string[]>([])
   const [typedAnswer, setTypedAnswer] = useState('')
@@ -27,10 +33,25 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const [makeSentenceAnswer, setMakeSentenceAnswer] = useState('')
   const [submittedMakeSentenceAnswer, setSubmittedMakeSentenceAnswer] = useState('')
   const [history, setHistory] = useState<PracticeStateSnapshot[]>([])
+  const [showGrammar, setShowGrammar] = useState(true)
+  const [showVocab, setShowVocab] = useState(true)
+  const [readingQuestionIndex, setReadingQuestionIndex] = useState(0)
+  const [readingAnswers, setReadingAnswers] = useState<Record<number, string>>({})
+  const [readingBlankAnswers, setReadingBlankAnswers] = useState({
+    meeting: '',
+    reason: '',
+  })
+  const [readingDragOffset, setReadingDragOffset] = useState(0)
+  const [isReadingDragging, setIsReadingDragging] = useState(false)
+  const readingDragStartXRef = useRef<number | null>(null)
+  const readingDidDragRef = useRef(false)
   const isFillStep = practiceStep === 'fill'
   const isMakeStep = practiceStep === 'make'
   const isReviewStep = practiceStep === 'review'
+  const isReadingStep = practiceStep === 'reading'
   const currentAnswer = isReviewStep
+    ? ''
+    : isReadingStep
     ? ''
     : isMakeStep
     ? submittedMakeSentenceAnswer
@@ -41,6 +62,29 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const isAnswered = currentAnswer.length > 0
   const isCorrectAnswer = currentAnswer === correctAnswer
   const isWrongAnswer = isAnswered && !isCorrectAnswer
+  const readingQuestions = [
+    {
+      title: 'Question 1',
+      prompt: '두 사람은 며칠에 만났어요?',
+      type: 'choice',
+      options: ['월요일', '수요일', '토요일', '일요일'],
+    },
+    {
+      title: 'Question 2',
+      prompt: '마리 씨는 왜 오늘 영화를 못 봐요?',
+      type: 'blank',
+    },
+  ]
+  const isReadingComplete =
+    Boolean(readingAnswers[0]) &&
+    readingBlankAnswers.meeting.trim().length > 0 &&
+    readingBlankAnswers.reason.trim().length > 0
+  const readingCardWidth = 350
+  const readingCardGap = 8
+  const readingTrackOffset = 24
+  const readingTrackStride = readingCardWidth + readingCardGap
+  const readingTrackTranslate =
+    readingTrackOffset - readingQuestionIndex * readingTrackStride + readingDragOffset
 
   const currentSnapshot: PracticeStateSnapshot = {
     practiceStep,
@@ -50,6 +94,9 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
     submittedTypedAnswer,
     makeSentenceAnswer,
     submittedMakeSentenceAnswer,
+    readingQuestionIndex,
+    readingAnswers,
+    readingBlankAnswers,
   }
 
   const applySnapshot = (snapshot: PracticeStateSnapshot) => {
@@ -60,6 +107,9 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
     setSubmittedTypedAnswer(snapshot.submittedTypedAnswer)
     setMakeSentenceAnswer(snapshot.makeSentenceAnswer)
     setSubmittedMakeSentenceAnswer(snapshot.submittedMakeSentenceAnswer)
+    setReadingQuestionIndex(snapshot.readingQuestionIndex)
+    setReadingAnswers(snapshot.readingAnswers)
+    setReadingBlankAnswers(snapshot.readingBlankAnswers)
   }
 
   const pushHistory = () => {
@@ -68,6 +118,8 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
       {
         ...currentSnapshot,
         revealedAnswers: [...currentSnapshot.revealedAnswers],
+        readingAnswers: { ...currentSnapshot.readingAnswers },
+        readingBlankAnswers: { ...currentSnapshot.readingBlankAnswers },
       },
     ])
   }
@@ -137,10 +189,10 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
                 />
               </svg>
             </button>
-            <h1 className="grammar-practice-title">Practice</h1>
+            <h1 className="grammar-practice-title">{isReadingStep ? 'Reading' : 'Practice'}</h1>
           </header>
         )}
-        {isReviewStep ? null : (
+        {isReviewStep || isReadingStep ? null : (
         <div className="grammar-practice-progress" role="list" aria-label="grammar practice progress">
           <span className="grammar-practice-progress-track" aria-hidden="true" />
           <span
@@ -165,7 +217,7 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
           ))}
         </div>
         )}
-        {isReviewStep ? null : (
+        {isReviewStep || isReadingStep ? null : (
         <p className="grammar-practice-guide">
           {isMakeStep
             ? 'Make your own sentance.'
@@ -220,13 +272,258 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
               <button type="button" className="grammar-practice-review-action-button">
                 Next grammer
               </button>
-              <button type="button" className="grammar-practice-review-action-button">
+              <button
+                type="button"
+                className="grammar-practice-review-action-button"
+                onClick={() => {
+                  pushHistory()
+                  setPracticeStep('reading')
+                }}
+              >
                 To reading
               </button>
             </div>
           </section>
         ) : null}
-        {!isReviewStep && isMakeStep ? (
+        {isReadingStep ? (
+          <section className="grammar-practice-reading-screen">
+            <div className="grammar-practice-reading-toggle-row">
+              <div className="grammar-practice-reading-toggle-group">
+                <span className="grammar-practice-reading-toggle-label">Show Grammar</span>
+                <button
+                  type="button"
+                  className={`grammar-practice-reading-switch ${
+                    showGrammar ? 'grammar-practice-reading-switch-active' : ''
+                  }`}
+                  onClick={() => setShowGrammar((prev) => !prev)}
+                  aria-pressed={showGrammar}
+                  aria-label="Show Grammar"
+                >
+                  <span className="grammar-practice-reading-switch-thumb" />
+                </button>
+              </div>
+
+              <div className="grammar-practice-reading-toggle-group">
+                <span className="grammar-practice-reading-toggle-label">Show Vocab</span>
+                <button
+                  type="button"
+                  className={`grammar-practice-reading-switch ${
+                    showVocab ? 'grammar-practice-reading-switch-active' : ''
+                  }`}
+                  onClick={() => setShowVocab((prev) => !prev)}
+                  aria-pressed={showVocab}
+                  aria-label="Show Vocab"
+                >
+                  <span className="grammar-practice-reading-switch-thumb" />
+                </button>
+              </div>
+            </div>
+
+            <section className="grammar-practice-reading-card">
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  건우
+                </span>{' '}
+                마리{' '}
+                씨, 오늘 같이 영화를 볼까요?
+              </p>
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  마리
+                </span>{' '}
+                미안해요. 오늘은 회의가 있어요.
+              </p>
+              <p className="grammar-practice-reading-line grammar-practice-reading-line-indented">
+                그래서 바빠요.
+              </p>
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  건우
+                </span>{' '}
+                언제 시간이 있어요?
+              </p>
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  마리
+                </span>{' '}
+                저는 토요일이나 일요일이 좋아요.
+              </p>
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  건우
+                </span>{' '}
+                그럼 토요일에 만날까요?
+              </p>
+              <p className="grammar-practice-reading-line">
+                <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                  마리
+                </span>{' '}
+                네, 좋아요. 토요일에 만나요.
+              </p>
+            </section>
+
+            <div
+              className="grammar-practice-reading-question-viewport"
+              onPointerDown={(e) => {
+                readingDragStartXRef.current = e.clientX
+                readingDidDragRef.current = false
+                setIsReadingDragging(true)
+              }}
+              onPointerMove={(e) => {
+                if (readingDragStartXRef.current === null) {
+                  return
+                }
+
+                const deltaX = e.clientX - readingDragStartXRef.current
+                if (Math.abs(deltaX) > 8) {
+                  readingDidDragRef.current = true
+                }
+                setReadingDragOffset(deltaX)
+              }}
+              onPointerUp={() => {
+                if (readingDragStartXRef.current === null) {
+                  return
+                }
+
+                if (readingDragOffset <= -40 && readingQuestionIndex < readingQuestions.length - 1) {
+                  setReadingQuestionIndex((prev) => prev + 1)
+                }
+
+                if (readingDragOffset >= 40 && readingQuestionIndex > 0) {
+                  setReadingQuestionIndex((prev) => prev - 1)
+                }
+
+                readingDragStartXRef.current = null
+                setReadingDragOffset(0)
+                setIsReadingDragging(false)
+                window.setTimeout(() => {
+                  readingDidDragRef.current = false
+                }, 0)
+              }}
+              onPointerLeave={() => {
+                if (readingDragStartXRef.current === null) {
+                  return
+                }
+
+                readingDragStartXRef.current = null
+                setReadingDragOffset(0)
+                setIsReadingDragging(false)
+                window.setTimeout(() => {
+                  readingDidDragRef.current = false
+                }, 0)
+              }}
+              onPointerCancel={() => {
+                readingDragStartXRef.current = null
+                setReadingDragOffset(0)
+                setIsReadingDragging(false)
+                readingDidDragRef.current = false
+              }}
+            >
+              <div
+                className={`grammar-practice-reading-question-track ${
+                  isReadingDragging ? 'is-dragging' : ''
+                }`}
+                style={{ transform: `translateX(${readingTrackTranslate}px)` }}
+              >
+                {readingQuestions.map((question, index) => (
+                  <section key={question.title} className="grammar-practice-reading-question-card">
+                    <p className="grammar-practice-reading-question-title">{question.title}</p>
+                    <p className="grammar-practice-reading-question-prompt">{question.prompt}</p>
+                    {question.type === 'choice' ? (
+                      <div className="grammar-practice-reading-options">
+                        {question.options.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`grammar-practice-reading-option-button ${
+                              readingAnswers[index] === option
+                                ? 'grammar-practice-reading-option-button-selected'
+                                : ''
+                            }`}
+                            onClick={() => {
+                              if (readingDidDragRef.current) {
+                                return
+                              }
+
+                              setReadingAnswers((prev) => ({
+                                ...prev,
+                                [index]: option,
+                              }))
+
+                              if (index < readingQuestions.length - 1) {
+                                setReadingQuestionIndex(index + 1)
+                              }
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grammar-practice-reading-blank-group">
+                        <p className="grammar-practice-reading-blank-line">
+                          오늘은
+                          <input
+                            type="text"
+                            className="grammar-practice-reading-inline-blank"
+                            value={readingBlankAnswers.meeting}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onPointerUp={(event) => event.stopPropagation()}
+                            onChange={(event) =>
+                              setReadingBlankAnswers((prev) => ({
+                                ...prev,
+                                meeting: event.target.value,
+                              }))
+                            }
+                          />
+                          이/가 있어요.
+                        </p>
+                        <p className="grammar-practice-reading-blank-line">
+                          그래서
+                          <input
+                            type="text"
+                            className="grammar-practice-reading-inline-blank"
+                            value={readingBlankAnswers.reason}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onPointerUp={(event) => event.stopPropagation()}
+                            onChange={(event) =>
+                              setReadingBlankAnswers((prev) => ({
+                                ...prev,
+                                reason: event.target.value,
+                              }))
+                            }
+                          />
+                          .
+                        </p>
+                      </div>
+                    )}
+                  </section>
+                ))}
+              </div>
+            </div>
+
+            <div className="grammar-practice-reading-dots" aria-label="reading question progress">
+              {readingQuestions.map((question, index) => (
+                <span
+                  key={question.title}
+                  className={`grammar-practice-reading-dot ${
+                    index === readingQuestionIndex ? 'grammar-practice-reading-dot-active' : ''
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className={`grammar-practice-reading-next-button ${
+                isReadingComplete ? 'grammar-practice-reading-next-button-active' : ''
+              }`}
+              disabled={!isReadingComplete}
+            >
+              Next
+            </button>
+          </section>
+        ) : !isReviewStep && isMakeStep ? (
           <>
             <section
               className={`grammar-practice-question-card grammar-practice-question-card-make ${
@@ -431,7 +728,7 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
             )}
           </>
         ) : null}
-        {isReviewStep ? null : (
+        {isReviewStep || isReadingStep ? null : (
         <button
           type="button"
           className={`grammar-practice-next-button ${
