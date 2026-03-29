@@ -13,6 +13,9 @@ import ClassPage from './pages/ClassPage'
 import SettingPage from './pages/SettingPage'
 import AccountInfoPage from './pages/AccountInfoPage'
 import PreferencesPage from './pages/PreferencesPage'
+import NotebookPage from './pages/NotebookPage'
+import VocabularyPage from './pages/VocabularyPage'
+import GrammarNotebookPage from './pages/GrammarNotebookPage'
 
 const ONBOARDING_COMPLETED_KEY = 'dojeon:onboarding.completed'
 const ONBOARDING_USERNAME_KEY = 'dojeon:onboarding.username'
@@ -111,7 +114,7 @@ function App() {
   const [screen, setScreen] = useState<
     'splash' | 'login' | 'signup' | 'verify-email' | 'verify-success'
     | 'onboarding' | 'home' | 'class' | 'practice' | 'grammar-practice' | 'setting'
-    | 'account-info' | 'preferences'
+    | 'account-info' | 'preferences' | 'notebook' | 'vocabulary' | 'notebook-grammar'
   >('splash')
   const [signupEmail, setSignupEmail] = useState(getStoredAccountEmail)
   const [accountPassword, setAccountPassword] = useState(getStoredAccountPassword)
@@ -242,6 +245,9 @@ function App() {
           onOpenClass={() => {
             setScreen('class')
           }}
+          onOpenNotebook={() => {
+            setScreen('notebook')
+          }}
           onOpenProfile={() => {
             setScreen('setting')
           }}
@@ -323,6 +329,40 @@ function App() {
           }}
           onBack={() => {
             setScreen('setting')
+          }}
+        />
+      ) : screen === 'notebook' ? (
+        <NotebookPage
+          userName={userName}
+          onOpenGrammarNotebook={() => {
+            setScreen('notebook-grammar')
+          }}
+          onOpenVocabulary={() => {
+            setScreen('vocabulary')
+          }}
+          onOpenHome={() => {
+            setScreen('home')
+          }}
+          onOpenClass={() => {
+            setScreen('class')
+          }}
+          onOpenPractice={() => {
+            setScreen('practice')
+          }}
+          onOpenProfile={() => {
+            setScreen('setting')
+          }}
+        />
+      ) : screen === 'vocabulary' ? (
+        <VocabularyPage
+          onBack={() => {
+            setScreen('notebook')
+          }}
+        />
+      ) : screen === 'notebook-grammar' ? (
+        <GrammarNotebookPage
+          onBack={() => {
+            setScreen('notebook')
           }}
         />
       ) : screen === 'grammar-practice' ? (

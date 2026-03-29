@@ -1,0 +1,160 @@
+.grammar-notebook-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+}
+
+.grammar-notebook-content {
+  width: 100%;
+  padding: 0 20px 32px;
+  box-sizing: border-box;
+}
+
+.grammar-notebook-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding-top: 8px;
+}
+
+.grammar-notebook-back {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.grammar-notebook-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.grammar-notebook-title {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.grammar-notebook-sort-row {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.grammar-notebook-sort-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #979797;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.grammar-notebook-sort-icon {
+  color: #979797;
+  transition: transform 0.2s ease;
+}
+
+.grammar-notebook-sort-icon.is-alt {
+  transform: rotate(180deg);
+}
+
+.grammar-notebook-card-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grammar-notebook-card {
+  width: 350px;
+  max-width: 100%;
+  height: 84px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 11px 16px 13px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.grammar-notebook-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grammar-notebook-course {
+  margin: 0;
+  color: #555555;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-notebook-badge {
+  width: 61px;
+  height: 22px;
+  border-radius: 4px;
+  background: #9f9f9f;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.grammar-notebook-card-bottom {
+  margin-top: 13px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.grammar-notebook-topic {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  transform: translateY(-2px);
+}
+
+.grammar-notebook-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  display: block;
+  object-fit: contain;
+  transform: translateY(-50%);
+}

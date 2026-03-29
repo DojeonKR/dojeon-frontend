@@ -17,6 +17,7 @@ const tabs = [
 interface HomePageProps {
   userName: string
   onOpenClass: () => void
+  onOpenNotebook: () => void
   onOpenProfile: () => void
   onOpenPractice: () => void
   onOpenGrammarPractice: () => void
@@ -25,6 +26,7 @@ interface HomePageProps {
 function HomePage({
   userName,
   onOpenClass,
+  onOpenNotebook,
   onOpenProfile,
   onOpenPractice,
   onOpenGrammarPractice,
@@ -181,6 +183,10 @@ function HomePage({
 
               if (tab.label === 'PRACTICE') {
                 onOpenPractice()
+              }
+
+              if (tab.label === 'NOTEBOOK') {
+                onOpenNotebook()
               }
 
               if (tab.label === 'PROFILE') {
