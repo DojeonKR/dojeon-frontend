@@ -578,3 +578,248 @@
 .grammar-practice-next-button-fill {
   margin-top: auto;
 }
+
+.grammar-practice-reading-screen {
+  margin-top: 21px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grammar-practice-reading-toggle-row {
+  width: min(350px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 27px;
+}
+
+.grammar-practice-reading-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grammar-practice-reading-toggle-label {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-reading-switch {
+  width: 38px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #c7c7c7;
+  padding: 2px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.grammar-practice-reading-switch-active {
+  background: #8f8f8f;
+  justify-content: flex-end;
+}
+
+.grammar-practice-reading-switch-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.grammar-practice-reading-card {
+  width: 350px;
+  margin-top: 20px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 18px 18px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: center;
+}
+
+.grammar-practice-reading-line {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.grammar-practice-reading-line-indented {
+  padding-left: 32px;
+}
+
+.grammar-practice-reading-name {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.grammar-practice-reading-name.is-visible {
+  font-weight: 600;
+}
+
+.grammar-practice-reading-question-viewport {
+  width: calc(100% + 48px);
+  margin-top: 86px;
+  margin-left: -24px;
+  margin-right: -24px;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.grammar-practice-reading-question-track {
+  display: flex;
+  gap: 8px;
+  transition: transform 0.24s ease;
+  will-change: transform;
+}
+
+.grammar-practice-reading-question-track.is-dragging {
+  transition: none;
+  cursor: grabbing;
+}
+
+.grammar-practice-reading-question-card {
+  width: 350px;
+  height: 220px;
+  flex: 0 0 350px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 16px 12px 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.grammar-practice-reading-question-title {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.grammar-practice-reading-question-prompt {
+  margin: 6px 0 0;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.grammar-practice-reading-options {
+  width: 280px;
+  max-width: 100%;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 136px);
+  justify-content: space-between;
+  gap: 8px;
+  align-self: center;
+}
+
+.grammar-practice-reading-option-button {
+  width: 136px;
+  height: 46px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.grammar-practice-reading-option-button-selected {
+  background: #f1f1f1;
+}
+
+.grammar-practice-reading-blank-group {
+  margin-top: 27px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grammar-practice-reading-blank-line {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.grammar-practice-reading-inline-blank {
+  width: 82px;
+  height: 28px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffffff;
+  padding: 0 8px;
+  box-sizing: border-box;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.grammar-practice-reading-inline-blank:focus {
+  outline: none;
+}
+
+.grammar-practice-reading-dots {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.grammar-practice-reading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c6c6c6;
+}
+
+.grammar-practice-reading-dot-active {
+  background: #8f8f8f;
+}
+
+.grammar-practice-reading-next-button {
+  width: min(350px, 100%);
+  height: 54px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #d3d3d3;
+  color: #7c7c7c;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: not-allowed;
+}
+
+.grammar-practice-reading-next-button-active {
+  background: #a0a0a0;
+  color: #000000;
+  cursor: pointer;
+}
