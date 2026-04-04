@@ -999,3 +999,284 @@
   justify-content: flex-start;
   padding-top: 16px;
 }
+
+.grammar-practice-next-grammar-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 132px);
+}
+
+.grammar-practice-next-grammar-screen .grammar-practice-reading-toggle-row {
+  margin-top: 21px;
+}
+
+.grammar-practice-next-grammar-section {
+  margin-top: 30px;
+}
+
+.grammar-practice-next-grammar-heading {
+  margin: 0;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.grammar-practice-next-grammar-description {
+  margin-top: 10px;
+  color: #515151;
+  font-size: 16px;
+  font-weight: 400;
+  font-stretch: semi-condensed;
+  line-height: 1.25;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grammar-practice-next-grammar-description-line {
+  margin: 0;
+}
+
+.grammar-practice-next-grammar-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 134px 214px;
+  gap: 2px;
+  justify-content: flex-start;
+}
+
+.grammar-practice-next-grammar-grid-box {
+  width: 100%;
+  height: 30px;
+  border-radius: 0;
+  background: #efefef;
+  color: #000000;
+  font-size: 14px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.grammar-practice-next-grammar-grid-box:nth-child(n + 5) {
+  margin-top: 6px;
+}
+
+.grammar-practice-next-grammar-grid-box:nth-child(1),
+.grammar-practice-next-grammar-grid-box:nth-child(2),
+.grammar-practice-next-grammar-grid-box:nth-child(5),
+.grammar-practice-next-grammar-grid-box:nth-child(6) {
+  background: #d9d9d9;
+}
+
+.grammar-practice-next-grammar-grid-box-semibold {
+  font-weight: 600;
+}
+
+.grammar-practice-next-grammar-grid-box-medium {
+  font-weight: 500;
+}
+
+.grammar-practice-next-grammar-examples-section {
+  margin-top: 36px;
+}
+
+.grammar-practice-next-grammar-hero-row {
+  margin-top: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.grammar-practice-next-grammar-people-icon {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.grammar-practice-next-grammar-chat {
+  margin-top: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grammar-practice-next-grammar-message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.grammar-practice-next-grammar-message-left {
+  justify-content: flex-start;
+}
+
+.grammar-practice-next-grammar-message-right {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+  gap: 1px;
+}
+
+.grammar-practice-next-grammar-avatar {
+  width: 40px;
+  height: 40px;
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.grammar-practice-next-grammar-bubble-stack {
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.grammar-practice-next-grammar-bubble-row {
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: visible;
+}
+
+.grammar-practice-next-grammar-message-right .grammar-practice-next-grammar-bubble-row {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.grammar-practice-next-grammar-message-right .grammar-practice-next-grammar-bubble-stack {
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.grammar-practice-next-grammar-bubble {
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.grammar-practice-next-grammar-hero-row .grammar-practice-next-grammar-bubble::after,
+.grammar-practice-next-grammar-message-left .grammar-practice-next-grammar-bubble::after,
+.grammar-practice-next-grammar-message-right .grammar-practice-next-grammar-bubble::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  width: 9px;
+  height: 18px;
+  background: #d9d9d9;
+}
+
+.grammar-practice-next-grammar-hero-row .grammar-practice-next-grammar-bubble::after,
+.grammar-practice-next-grammar-message-left .grammar-practice-next-grammar-bubble::after {
+  left: -7px;
+  clip-path: polygon(100% 0, 100% 100%, 0 28%);
+}
+
+.grammar-practice-next-grammar-message-right .grammar-practice-next-grammar-bubble::after {
+  right: -7px;
+  clip-path: polygon(0 0, 0 100%, 100% 28%);
+}
+
+.grammar-practice-next-grammar-translation-toggle {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: #6b6b6b;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  position: absolute;
+  top: auto;
+  bottom: -8px;
+}
+
+.grammar-practice-next-grammar-translation-mark {
+  width: 14px;
+  height: 14px;
+  display: block;
+  object-fit: contain;
+}
+
+.grammar-practice-next-grammar-bubble-medium {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.grammar-practice-next-grammar-bubble-semibold {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.grammar-practice-next-grammar-hero-row .grammar-practice-next-grammar-translation-toggle {
+  right: -10px;
+}
+
+.grammar-practice-next-grammar-message-left .grammar-practice-next-grammar-translation-toggle {
+  right: -10px;
+}
+
+.grammar-practice-next-grammar-message-right .grammar-practice-next-grammar-translation-toggle {
+  left: -10px;
+}
+
+.grammar-practice-next-grammar-translation {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f3f3f3;
+  color: #555555;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.grammar-practice-next-grammar-translation-left {
+  text-align: left;
+}
+
+.grammar-practice-next-grammar-translation-right {
+  text-align: right;
+}
+
+.grammar-practice-next-grammar-actions {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.grammar-practice-next-grammar-action-button {
+  width: 167px;
+  height: 54px;
+  border: 0;
+  border-radius: 10px;
+  background: #b3b3b3;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.grammar-practice-next-grammar-action-button-back {
+  background: #e8e8e8;
+}

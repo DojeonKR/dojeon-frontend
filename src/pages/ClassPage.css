@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 84px;
+  padding-bottom: 230px;
   position: relative;
 }
 
@@ -20,29 +20,34 @@
   box-sizing: border-box;
 }
 
+.class-page-title {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}
+
 .class-progress-card {
-  width: 100%;
+  width: auto;
+  align-self: stretch;
   min-height: 140px;
   margin-top: 0;
+  margin-left: -20px;
+  margin-right: -20px;
   padding: 52px 20px 23px;
   box-sizing: border-box;
   background: #f3f3f3;
   border-radius: 0 0 10px 10px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.class-progress-title {
-  margin: 0;
-  color: #000000;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
+  align-items: flex-start;
 }
 
 .class-progress-complete {
   margin: 4px 0 0;
+  align-self: center;
   color: #000000;
   font-size: 14px;
   font-weight: 500;
@@ -107,7 +112,14 @@
 
 .class-course-item {
   width: 100%;
-  height: 66px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.class-course-toggle {
+  width: 100%;
+  min-height: 66px;
   border: 0;
   border-radius: 10px;
   background: #dcdcdc;
@@ -119,9 +131,9 @@
   cursor: pointer;
 }
 
-.class-course-label {
+.class-course-toggle-label {
   color: #000000;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -129,11 +141,120 @@
 .class-course-arrow {
   color: #000000;
   flex: 0 0 auto;
+  transition: transform 0.2s ease;
+}
+
+.class-course-arrow-open {
+  transform: rotate(0deg);
+}
+
+.class-course-arrow-closed {
+  transform: rotate(180deg);
+}
+
+.class-course-lessons {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.class-lesson-card {
+  width: 100%;
+  min-height: 66px;
+  border: 0;
+  border-radius: 10px;
+  background: #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+}
+
+.class-lesson-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.class-lesson-progress {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.class-lesson-progress::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #eeeeee;
+}
+
+.class-lesson-progress-text {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: baseline;
+  color: #646464;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.class-lesson-progress-number {
+  font-size: 12px;
+}
+
+.class-lesson-progress-unit {
+  font-size: 8px;
+}
+
+.class-lesson-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.class-lesson-chip {
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: #9f9f9f;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.class-lesson-title {
+  color: #000000;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.class-lesson-arrow {
+  color: #000000;
+  flex: 0 0 auto;
 }
 
 .class-bottom-nav {
   position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: min(390px, 100%);
   height: 80px;
   padding: 0 20px env(safe-area-inset-bottom);
@@ -142,6 +263,101 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  z-index: 3;
+}
+
+.class-trial-toggle {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  height: 50px;
+  border: 0;
+  border-radius: 20px 20px 0 0;
+  background: #4f4f4f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+}
+
+.class-trial-toggle-expanded {
+  bottom: calc(env(safe-area-inset-bottom) + 154px);
+}
+
+.class-trial-toggle-collapsed {
+  bottom: calc(env(safe-area-inset-bottom) + 80px);
+}
+
+.class-trial-toggle-text {
+  color: #e2e2e2;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.class-current-lesson-card {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  height: 70px;
+  border: 0;
+  border-radius: 4px;
+  background: #a7a7a7;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #000000;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.class-current-lesson-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.class-current-lesson-kicker {
+  color: #000000;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.class-current-lesson-title {
+  color: #000000;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.class-current-lesson-arrow {
+  color: #000000;
+  flex: 0 0 auto;
+}
+
+.class-current-lesson-progress-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  height: 4px;
+  z-index: 2;
+}
+
+.class-current-lesson-progress-fill {
+  display: block;
+  height: 100%;
+  background: #787878;
 }
 
 .class-tab {
