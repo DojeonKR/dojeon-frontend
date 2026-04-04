@@ -1,13 +1,26 @@
 import { useRef, useState } from 'react'
 import './GrammarPracticePage.css'
 import checkIconWhite from '../assets/check_icon_white.svg'
+import peopleIcon from '../assets/icon-park-solid_people.png'
+import vectorIcon from '../assets/Vector1.png'
+
+type PracticeStep =
+  | 'choice'
+  | 'fill'
+  | 'make'
+  | 'review'
+  | 'reading'
+  | 'listening'
+  | 'next-grammar'
 
 interface GrammarPracticePageProps {
   onBack: () => void
+  language: string
+  initialPracticeStep?: PracticeStep
 }
 
 interface PracticeStateSnapshot {
-  practiceStep: 'choice' | 'fill' | 'make' | 'review' | 'reading' | 'listening'
+  practiceStep: PracticeStep
   selectedAnswer: string
   revealedAnswers: string[]
   typedAnswer: string
@@ -24,12 +37,14 @@ interface PracticeStateSnapshot {
   showListeningText: boolean
 }
 
-function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
+function GrammarPracticePage({
+  onBack,
+  language,
+  initialPracticeStep = 'choice',
+}: GrammarPracticePageProps) {
   const fillCorrectAnswer = '마시다'
   const makeCorrectAnswer = '준호씨가 커피를 마신다.'
-  const [practiceStep, setPracticeStep] = useState<
-    'choice' | 'fill' | 'make' | 'review' | 'reading' | 'listening'
-  >('choice')
+  const [practiceStep, setPracticeStep] = useState<PracticeStep>(initialPracticeStep)
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [revealedAnswers, setRevealedAnswers] = useState<string[]>([])
   const [typedAnswer, setTypedAnswer] = useState('')
@@ -49,6 +64,7 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const [showListeningText, setShowListeningText] = useState(false)
   const [listeningProgress, setListeningProgress] = useState(98 / 174)
   const [isListeningScrubbing, setIsListeningScrubbing] = useState(false)
+  const [visibleExampleTranslations, setVisibleExampleTranslations] = useState<Record<number, boolean>>({})
   const [readingDragOffset, setReadingDragOffset] = useState(0)
   const [isReadingDragging, setIsReadingDragging] = useState(false)
   const readingDragStartXRef = useRef<number | null>(null)
@@ -59,11 +75,14 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const isReviewStep = practiceStep === 'review'
   const isReadingStep = practiceStep === 'reading'
   const isListeningStep = practiceStep === 'listening'
+  const isNextGrammarStep = practiceStep === 'next-grammar'
   const currentAnswer = isReviewStep
     ? ''
     : isReadingStep
     ? ''
     : isListeningStep
+    ? ''
+    : isNextGrammarStep
     ? ''
     : isMakeStep
     ? submittedMakeSentenceAnswer
@@ -102,6 +121,31 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
   const listeningElapsedSeconds = Math.round(listeningTotalSeconds * listeningProgress)
   const listeningRemainingSeconds = Math.max(listeningTotalSeconds - listeningElapsedSeconds, 0)
   const isListeningTranscriptReady = listeningProgress >= 0.995
+  const normalizedLanguage = language.trim().toLowerCase()
+  const isTranslationRtl = normalizedLanguage === 'hebrew'
+  const nextGrammarExamples =
+    normalizedLanguage === 'hebrew'
+      ? [
+          { text: '같이 점심을 먹을까요?', translation: 'האם נאכל יחד צהריים?', side: 'left' as const },
+          { text: '네, 같이 먹어요.', translation: 'כן, בוא/י נאכל יחד.', side: 'right' as const },
+          { text: '그럼 12시에 만날까요?', translation: 'אז ניפגש ב-12?', side: 'left' as const },
+          { text: '네, 좋아요.', translation: 'כן, מצוין.', side: 'right' as const },
+        ]
+      : [
+          {
+            text: '같이 점심을 먹을까요?',
+            translation: 'Shall we eat lunch together?',
+            side: 'left' as const,
+          },
+          { text: '네, 같이 먹어요.', translation: "Yes, let's eat together.", side: 'right' as const },
+          {
+            text: '그럼 12시에 만날까요?',
+            translation: 'Then shall we meet at 12?',
+            side: 'left' as const,
+          },
+          { text: '네, 좋아요.', translation: 'Yes, sounds good.', side: 'right' as const },
+        ]
+  const nextGrammarGridItems = ['', 'V -ㄹ까요?', '가다', '갈까요?', '', 'V-을까요?', '먹다', '먹을까요?']
 
   const formatListeningTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -227,11 +271,17 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
               </svg>
             </button>
             <h1 className="grammar-practice-title">
-              {isListeningStep ? 'Listening' : isReadingStep ? 'Reading' : 'Practice'}
+              {isNextGrammarStep
+                ? '을까요? 1)'
+                : isListeningStep
+                  ? 'Listening'
+                  : isReadingStep
+                    ? 'Reading'
+                    : 'Practice'}
             </h1>
           </header>
         )}
-        {isReviewStep || isReadingStep || isListeningStep ? null : (
+        {isReviewStep || isReadingStep || isListeningStep || isNextGrammarStep ? null : (
         <div className="grammar-practice-progress" role="list" aria-label="grammar practice progress">
           <span className="grammar-practice-progress-track" aria-hidden="true" />
           <span
@@ -256,7 +306,7 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
           ))}
         </div>
         )}
-        {isReviewStep || isReadingStep || isListeningStep ? null : (
+        {isReviewStep || isReadingStep || isListeningStep || isNextGrammarStep ? null : (
         <p className="grammar-practice-guide">
           {isMakeStep
             ? 'Make your own sentance.'
@@ -308,7 +358,14 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
             </section>
 
             <div className="grammar-practice-review-action-row">
-              <button type="button" className="grammar-practice-review-action-button">
+              <button
+                type="button"
+                className="grammar-practice-review-action-button"
+                onClick={() => {
+                  pushHistory()
+                  setPracticeStep('next-grammar')
+                }}
+              >
                 Next grammer
               </button>
               <button
@@ -324,7 +381,195 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
             </div>
           </section>
         ) : null}
-        {isListeningStep ? (
+        {isNextGrammarStep ? (
+          <section className="grammar-practice-next-grammar-screen">
+            <div className="grammar-practice-reading-toggle-row">
+              <div className="grammar-practice-reading-toggle-group">
+                <span className="grammar-practice-reading-toggle-label">Show Grammar</span>
+                <button
+                  type="button"
+                  className={`grammar-practice-reading-switch ${
+                    showGrammar ? 'grammar-practice-reading-switch-active' : ''
+                  }`}
+                  onClick={() => setShowGrammar((prev) => !prev)}
+                  aria-pressed={showGrammar}
+                  aria-label="Show Grammar"
+                >
+                  <span className="grammar-practice-reading-switch-thumb" />
+                </button>
+              </div>
+
+              <div className="grammar-practice-reading-toggle-group">
+                <span className="grammar-practice-reading-toggle-label">Show Vocab</span>
+                <button
+                  type="button"
+                  className={`grammar-practice-reading-switch ${
+                    showVocab ? 'grammar-practice-reading-switch-active' : ''
+                  }`}
+                  onClick={() => setShowVocab((prev) => !prev)}
+                  aria-pressed={showVocab}
+                  aria-label="Show Vocab"
+                >
+                  <span className="grammar-practice-reading-switch-thumb" />
+                </button>
+              </div>
+            </div>
+
+            {showGrammar ? (
+              <>
+                <section className="grammar-practice-next-grammar-section">
+                  <h2 className="grammar-practice-next-grammar-heading">Grammar explation</h2>
+                  <div
+                    className="grammar-practice-next-grammar-description"
+                    dir="rtl"
+                  >
+                    <p className="grammar-practice-next-grammar-description-line">
+                      הזמנה לפעולה.
+                    </p>
+                    <p className="grammar-practice-next-grammar-description-line">
+                      "שנעשה (משהו)?"
+                    </p>
+                    <p className="grammar-practice-next-grammar-description-line">
+                      זו צורת דיבור בלבד בפנייה לאדם כלשהו, עם
+                    </p>
+                    <p className="grammar-practice-next-grammar-description-line">
+                      כוונה להציע לעשות משהו יחד.
+                    </p>
+                  </div>
+                  <div className="grammar-practice-next-grammar-grid" aria-hidden="true">
+                    {nextGrammarGridItems.map((item, index) => (
+                      <span
+                        key={`${item}-${index}`}
+                        className={`grammar-practice-next-grammar-grid-box ${
+                          index === 1 || index === 5
+                            ? 'grammar-practice-next-grammar-grid-box-semibold'
+                            : index === 2 || index === 3 || index === 6 || index === 7
+                              ? 'grammar-practice-next-grammar-grid-box-medium'
+                              : ''
+                        }`}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              </>
+            ) : null}
+
+            <section className="grammar-practice-next-grammar-examples-section">
+              <h2 className="grammar-practice-next-grammar-heading">Examples</h2>
+              <div className="grammar-practice-next-grammar-hero-row">
+                <img
+                  src={peopleIcon}
+                  alt=""
+                  className="grammar-practice-next-grammar-people-icon"
+                  aria-hidden="true"
+                />
+                <div className="grammar-practice-next-grammar-bubble-stack">
+                  <div className="grammar-practice-next-grammar-bubble-row">
+                    <div className="grammar-practice-next-grammar-bubble">
+                      <span className="grammar-practice-next-grammar-bubble-medium">
+                        같이 점심을{' '}
+                      </span>
+                      <span className="grammar-practice-next-grammar-bubble-semibold">
+                        먹을까요?
+                      </span>
+                    </div>
+                    {showVocab ? (
+                      <button
+                        type="button"
+                        className="grammar-practice-next-grammar-translation-toggle"
+                        onClick={() =>
+                          setVisibleExampleTranslations((prev) => ({
+                            ...prev,
+                            hero: !prev.hero,
+                          }))
+                        }
+                        aria-label="번역 보기"
+                      >
+                        <img
+                          src={vectorIcon}
+                          alt=""
+                          className="grammar-practice-next-grammar-translation-mark"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    ) : null}
+                  </div>
+                  {showVocab && visibleExampleTranslations.hero ? (
+                    <div
+                      className="grammar-practice-next-grammar-translation grammar-practice-next-grammar-translation-left"
+                      dir={isTranslationRtl ? 'rtl' : 'ltr'}
+                    >
+                      {nextGrammarExamples[0].translation}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="grammar-practice-next-grammar-chat">
+                {nextGrammarExamples.slice(1).map((example, index) => (
+                  <div
+                    key={`${example.text}-${index}`}
+                    className={`grammar-practice-next-grammar-message grammar-practice-next-grammar-message-${example.side}`}
+                  >
+                    <img
+                      src={peopleIcon}
+                      alt=""
+                      className="grammar-practice-next-grammar-avatar"
+                      aria-hidden="true"
+                    />
+                    <div className="grammar-practice-next-grammar-bubble-stack">
+                      <div className="grammar-practice-next-grammar-bubble-row">
+                        <div className="grammar-practice-next-grammar-bubble">{example.text}</div>
+                        {showVocab ? (
+                          <button
+                            type="button"
+                            className="grammar-practice-next-grammar-translation-toggle"
+                            onClick={() =>
+                              setVisibleExampleTranslations((prev) => ({
+                                ...prev,
+                                [`chat-${index}`]: !prev[`chat-${index}`],
+                              }))
+                            }
+                            aria-label="번역 보기"
+                          >
+                            <img
+                              src={vectorIcon}
+                              alt=""
+                              className="grammar-practice-next-grammar-translation-mark"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        ) : null}
+                      </div>
+                      {showVocab && visibleExampleTranslations[`chat-${index}`] ? (
+                        <div
+                          className={`grammar-practice-next-grammar-translation grammar-practice-next-grammar-translation-${example.side}`}
+                          dir={isTranslationRtl ? 'rtl' : 'ltr'}
+                        >
+                          {example.translation}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="grammar-practice-next-grammar-actions">
+              <button
+                type="button"
+                className="grammar-practice-next-grammar-action-button grammar-practice-next-grammar-action-button-back"
+                onClick={handleBackPress}
+              >
+                BACK
+              </button>
+              <button type="button" className="grammar-practice-next-grammar-action-button">
+                NEXT
+              </button>
+            </div>
+          </section>
+        ) : isListeningStep ? (
           <section className="grammar-practice-listening-screen">
             <div className="grammar-practice-reading-toggle-row">
               <div className="grammar-practice-reading-toggle-group">
@@ -990,7 +1235,7 @@ function GrammarPracticePage({ onBack }: GrammarPracticePageProps) {
             )}
           </>
         ) : null}
-        {isReviewStep || isReadingStep || isListeningStep ? null : (
+        {isReviewStep || isReadingStep || isListeningStep || isNextGrammarStep ? null : (
         <button
           type="button"
           className={`grammar-practice-next-button ${

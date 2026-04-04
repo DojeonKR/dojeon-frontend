@@ -16,6 +16,16 @@ import PreferencesPage from './pages/PreferencesPage'
 import NotebookPage from './pages/NotebookPage'
 import VocabularyPage from './pages/VocabularyPage'
 import GrammarNotebookPage from './pages/GrammarNotebookPage'
+import LessonDetailPage from './pages/LessonDetailPage'
+import {
+  courseItems,
+  currentCourseId,
+  currentLessonId,
+  findCourseById,
+  findLessonById,
+  getLessonPathId,
+  type LessonPathId,
+} from './data/classLessons'
 
 const ONBOARDING_COMPLETED_KEY = 'dojeon:onboarding.completed'
 const ONBOARDING_USERNAME_KEY = 'dojeon:onboarding.username'
@@ -110,11 +120,16 @@ const getStoredKoreanGoal = () => {
   return readLocalStorageItem(ACCOUNT_KOREAN_GOAL_KEY) ?? ''
 }
 
+const initialSelectedCourse = findCourseById(currentCourseId) ?? courseItems[0]
+const initialSelectedLesson =
+  findLessonById(initialSelectedCourse, currentLessonId) ?? initialSelectedCourse.lessons[0]
+
 function App() {
   const [screen, setScreen] = useState<
     'splash' | 'login' | 'signup' | 'verify-email' | 'verify-success'
     | 'onboarding' | 'home' | 'class' | 'practice' | 'grammar-practice' | 'setting'
     | 'account-info' | 'preferences' | 'notebook' | 'vocabulary' | 'notebook-grammar'
+    | 'lesson-detail'
   >('splash')
   const [signupEmail, setSignupEmail] = useState(getStoredAccountEmail)
   const [accountPassword, setAccountPassword] = useState(getStoredAccountPassword)
@@ -125,6 +140,21 @@ function App() {
   const [koreanLevel, setKoreanLevel] = useState(getStoredKoreanLevel)
   const [dailyGoal, setDailyGoal] = useState(getStoredDailyGoal)
   const [koreanGoal, setKoreanGoal] = useState(getStoredKoreanGoal)
+  const [selectedCourseId, setSelectedCourseId] = useState(currentCourseId)
+  const [selectedLessonId, setSelectedLessonId] = useState(currentLessonId)
+  const [selectedLessonPathId, setSelectedLessonPathId] = useState<LessonPathId>(
+    getLessonPathId(initialSelectedLesson.stage),
+  )
+  const [grammarPracticeInitialStep, setGrammarPracticeInitialStep] = useState<
+    'choice' | 'next-grammar'
+  >('choice')
+  const [grammarPracticeBackScreen, setGrammarPracticeBackScreen] = useState<'home' | 'class'>(
+    'home',
+  )
+
+  const selectedCourse = findCourseById(selectedCourseId) ?? courseItems[0]
+  const selectedLesson =
+    findLessonById(selectedCourse, selectedLessonId) ?? selectedCourse.lessons[0]
 
   useEffect(() => {
     if (screen !== 'splash') {
@@ -255,6 +285,8 @@ function App() {
             setScreen('practice')
           }}
           onOpenGrammarPractice={() => {
+            setGrammarPracticeInitialStep('choice')
+            setGrammarPracticeBackScreen('home')
             setScreen('grammar-practice')
           }}
         />
@@ -265,6 +297,35 @@ function App() {
           }}
           onOpenPractice={() => {
             setScreen('practice')
+          }}
+          onOpenCurrentLesson={() => {
+            setGrammarPracticeInitialStep('next-grammar')
+            setGrammarPracticeBackScreen('class')
+            setScreen('grammar-practice')
+          }}
+          onOpenLesson={(courseId, lessonId, initialPathId) => {
+            const nextCourse = findCourseById(courseId) ?? courseItems[0]
+            const nextLesson = findLessonById(nextCourse, lessonId) ?? nextCourse.lessons[0]
+
+            setSelectedCourseId(nextCourse.id)
+            setSelectedLessonId(nextLesson.id)
+            setSelectedLessonPathId(initialPathId ?? getLessonPathId(nextLesson.stage))
+            setScreen('lesson-detail')
+          }}
+        />
+      ) : screen === 'lesson-detail' ? (
+        <LessonDetailPage
+          course={selectedCourse}
+          selectedLessonId={selectedLesson.id}
+          initialPathId={selectedLessonPathId}
+          onSelectLesson={(lessonId) => {
+            const nextLesson = findLessonById(selectedCourse, lessonId) ?? selectedCourse.lessons[0]
+
+            setSelectedLessonId(nextLesson.id)
+            setSelectedLessonPathId(getLessonPathId(nextLesson.stage))
+          }}
+          onBack={() => {
+            setScreen('class')
           }}
         />
       ) : screen === 'practice' ? (
@@ -367,8 +428,10 @@ function App() {
         />
       ) : screen === 'grammar-practice' ? (
         <GrammarPracticePage
+          initialPracticeStep={grammarPracticeInitialStep}
+          language={language}
           onBack={() => {
-            setScreen('home')
+            setScreen(grammarPracticeBackScreen)
           }}
         />
       ) : (
