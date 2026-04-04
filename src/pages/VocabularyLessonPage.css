@@ -1,0 +1,603 @@
+.vocabulary-lesson-screen {
+  position: relative;
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+}
+
+.vocabulary-lesson-content {
+  width: 100%;
+  min-height: 100svh;
+  padding: 0 20px calc(env(safe-area-inset-bottom) + 116px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.vocabulary-lesson-content-study {
+  padding-bottom: 32px;
+}
+
+.vocabulary-lesson-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding-top: 8px;
+}
+
+.vocabulary-lesson-back {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.vocabulary-lesson-title {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.vocabulary-lesson-intro {
+  flex: 1;
+  min-height: calc(100svh - 64px - env(safe-area-inset-bottom) - 146px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 8px 0 0;
+  box-sizing: border-box;
+}
+
+.vocabulary-lesson-bubble {
+  position: relative;
+  max-width: 272px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  padding: 16px 20px;
+}
+
+.vocabulary-lesson-bubble::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  top: calc(100% - 1px);
+  width: 22px;
+  height: 18px;
+  background: #d9d9d9;
+  clip-path: polygon(100% 0, 0 0, 0 100%);
+}
+
+.vocabulary-lesson-bubble-copy {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.vocabulary-lesson-character {
+  width: 228px;
+  height: 253px;
+  object-fit: contain;
+}
+
+.vocabulary-lesson-start-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  padding: 0 20px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 4;
+}
+
+.vocabulary-lesson-start-button {
+  width: 122px;
+  height: 50px;
+  border: 0;
+  border-radius: 10px;
+  background: #b3b3b3;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-study {
+  padding-top: 20px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.vocabulary-lesson-study-head {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vocabulary-lesson-show-all-button {
+  min-width: 150px;
+  height: 35px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: #bebebe;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-carousel {
+  position: relative;
+  width: calc(100% + 40px);
+  height: 370px;
+  margin-top: 43px;
+  margin-left: -20px;
+  margin-right: -20px;
+  overflow: hidden;
+}
+
+.vocabulary-lesson-carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  height: 100%;
+  padding: 0 calc((100% - 236px) / 2);
+  box-sizing: border-box;
+  transition: transform 0.25s ease;
+}
+
+.vocabulary-lesson-card-shell {
+  position: relative;
+  flex: 0 0 236px;
+  border-radius: 10px;
+}
+
+.vocabulary-lesson-card-shell-current {
+  height: 370px;
+  background: #d9d9d9;
+}
+
+.vocabulary-lesson-card-shell-side {
+  height: 339px;
+  background: #a6a6a6;
+}
+
+.vocabulary-lesson-main-card-count {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #5d5d5d;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  z-index: 2;
+}
+
+.vocabulary-lesson-flip-card {
+  width: 100%;
+  height: 100%;
+  perspective: 1600px;
+  overflow: hidden;
+}
+
+.vocabulary-lesson-flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: rotateY(0deg);
+  transition: transform 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.vocabulary-lesson-flip-card-flipped .vocabulary-lesson-flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.vocabulary-lesson-flip-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+}
+
+.vocabulary-lesson-flip-face-front {
+  background: #d9d9d9;
+  transform: rotateY(0deg) translateZ(1px);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.vocabulary-lesson-flip-face-back {
+  background: #d9d9d9;
+  transform: rotateY(180deg) translateZ(1px);
+  z-index: 1;
+}
+
+.vocabulary-lesson-flip-card-flipped .vocabulary-lesson-flip-face-front {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.vocabulary-lesson-flip-card-flipped .vocabulary-lesson-flip-face-back {
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.vocabulary-lesson-main-card-center {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.vocabulary-lesson-main-card-word-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocabulary-lesson-main-card-word {
+  margin: 0;
+  color: #000000;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.vocabulary-lesson-speaker-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #4f4f4f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-speaker-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.vocabulary-lesson-main-card-back-copy {
+  margin: 0;
+  color: #000000;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.vocabulary-lesson-main-card-back-note {
+  margin: 36px 0 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.vocabulary-lesson-main-card-note-button {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #3f3f3f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-main-card-note-icon {
+  width: 22.5px;
+  height: 25px;
+  display: block;
+  object-fit: contain;
+}
+
+.vocabulary-lesson-indicators {
+  margin-top: 27px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.vocabulary-lesson-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b5b5b5;
+}
+
+.vocabulary-lesson-indicator-active {
+  background: #555555;
+}
+
+.vocabulary-lesson-flashcard-button {
+  width: 187px;
+  height: 46px;
+  margin-top: 29px;
+  border: 0;
+  border-radius: 10px;
+  background: #434343;
+  color: #e2e2e2;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  align-self: center;
+}
+
+.vocabulary-lesson-next-wrap {
+  margin-top: auto;
+  padding-top: 77px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vocabulary-lesson-next-button {
+  width: 122px;
+  height: 54px;
+  border: 0;
+  border-radius: 10px;
+  background: #b3b3b3;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  z-index: 20;
+}
+
+.vocabulary-lesson-modal {
+  width: min(288px, 100%);
+  border-radius: 10px;
+  background: #f2f2f2;
+  padding: 24px 18px 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vocabulary-lesson-modal-copy {
+  margin: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.vocabulary-lesson-modal-actions {
+  width: 100%;
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vocabulary-lesson-modal-button {
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-modal-button-secondary {
+  background: #dadada;
+  color: #000000;
+}
+
+.vocabulary-lesson-modal-button-primary {
+  background: #424242;
+  color: #ececec;
+}
+
+.vocabulary-lesson-table {
+  margin-top: 16px;
+}
+
+.vocabulary-lesson-table-grid {
+  display: grid;
+  grid-template-columns: 103px 103px 103px minmax(0, 1fr);
+  gap: 2px;
+}
+
+.vocabulary-lesson-table-cell {
+  height: 34px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  background: #ededed;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+.vocabulary-lesson-table-cell-header {
+  background: #d9d9d9;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vocabulary-lesson-table-cell-body {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.vocabulary-lesson-table-action {
+  border: 0;
+  color: #3f3f3f;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-flashcards {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vocabulary-lesson-flashcards-card {
+  min-height: 320px;
+  border-radius: 14px;
+  background: #efefef;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.vocabulary-lesson-flashcards-label {
+  margin: 0;
+  color: #5d5d5d;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.vocabulary-lesson-flashcards-word {
+  margin: 18px 0 0;
+  color: #000000;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.vocabulary-lesson-flashcards-meaning {
+  margin: 14px 0 0;
+  color: #333333;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.vocabulary-lesson-flashcards-copy {
+  margin: 0;
+  color: #4f4f4f;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.vocabulary-lesson-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  height: 80px;
+  padding: 0 20px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: #cfcfcf;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 3;
+}
+
+.vocabulary-lesson-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #000000;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-tab-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.vocabulary-lesson-tab-label {
+  color: #000000;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.vocabulary-lesson-tab-active .vocabulary-lesson-tab-label {
+  font-weight: 600;
+}

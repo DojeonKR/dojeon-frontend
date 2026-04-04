@@ -12,6 +12,7 @@ import {
   findCourseById,
   findLessonById,
   getLessonPathId,
+  type LessonStage,
   type LessonPathId,
 } from '../data/classLessons'
 
@@ -34,7 +35,7 @@ const trialLabel = `${trialTargetDays}-day Trial available`
 interface ClassPageProps {
   onOpenHome: () => void
   onOpenPractice: () => void
-  onOpenCurrentLesson: () => void
+  onOpenCurrentLesson: (stage: LessonStage) => void
   onOpenLesson: (courseId: string, lessonId: string, initialPathId?: LessonPathId) => void
 }
 
@@ -187,7 +188,7 @@ function ClassPage({ onOpenHome, onOpenPractice, onOpenCurrentLesson, onOpenLess
           <button
             type="button"
             className="class-current-lesson-card"
-            onClick={onOpenCurrentLesson}
+            onClick={() => onOpenCurrentLesson(currentLesson.stage)}
             aria-label={`Open ${currentCourse.label}, ${currentLesson.label}`}
           >
             <span className="class-current-lesson-copy">

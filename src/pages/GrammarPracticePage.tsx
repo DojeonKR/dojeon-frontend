@@ -4,7 +4,7 @@ import checkIconWhite from '../assets/check_icon_white.svg'
 import peopleIcon from '../assets/icon-park-solid_people.png'
 import vectorIcon from '../assets/Vector1.png'
 
-type PracticeStep =
+export type PracticeStep =
   | 'choice'
   | 'fill'
   | 'make'

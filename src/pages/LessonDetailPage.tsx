@@ -56,6 +56,7 @@ interface LessonDetailPageProps {
   selectedLessonId: string
   initialPathId: LessonPathId
   onSelectLesson: (lessonId: string) => void
+  onStartLesson: (pathId: LessonPathId) => void
   onBack: () => void
 }
 
@@ -64,6 +65,7 @@ function LessonDetailPage({
   selectedLessonId,
   initialPathId,
   onSelectLesson,
+  onStartLesson,
   onBack,
 }: LessonDetailPageProps) {
   const [isLessonPickerOpen, setIsLessonPickerOpen] = useState(false)
@@ -345,7 +347,11 @@ function LessonDetailPage({
               </div>
             ) : null}
 
-            <button type="button" className="lesson-detail-start-button">
+            <button
+              type="button"
+              className="lesson-detail-start-button"
+              onClick={() => onStartLesson(selectedPathId)}
+            >
               START LESSON
             </button>
           </div>
