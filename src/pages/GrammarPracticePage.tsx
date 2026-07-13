@@ -204,7 +204,7 @@ function GrammarPracticePage({
   const showMakeResultPanel = isMakeStep && isAnswered && (isCorrectAnswer || isWrongAnswer)
   const makeResultImage = isCorrectAnswer ? choiceCorrectImage : choiceWrongImage
   const canMoveToNextPracticeStep =
-    isCorrectAnswer && !checkAnswer.isPending && (!isChoiceStep || showChoiceFeedbackPanel)
+    isAnswered && !checkAnswer.isPending && (!isChoiceStep || showChoiceFeedbackPanel)
 
   const readingQuestions = [
     {
