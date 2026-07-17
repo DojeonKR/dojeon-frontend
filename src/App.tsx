@@ -330,6 +330,15 @@ function App() {
     queryClient.removeQueries({ queryKey: ['user', 'me', 'achievement'] })
   }, [queryClient])
 
+  const handleUnauthorized = useCallback(() => {
+    clearStoredAuthSession()
+    clearAccountScopedQueries()
+    setAuthSession(null)
+    setPendingSignup(null)
+    setSettingBackScreen('home')
+    setScreen('login')
+  }, [clearAccountScopedQueries])
+
   const hasCompletedOnboarding =
     readLocalStorageItem(ONBOARDING_COMPLETED_KEY) === 'true'
 
@@ -439,12 +448,7 @@ function App() {
     } catch {
       // Local sign-out still proceeds when the logout request fails.
     } finally {
-      clearStoredAuthSession()
-      clearAccountScopedQueries()
-      setAuthSession(null)
-      setPendingSignup(null)
-      setSettingBackScreen('home')
-      setScreen('login')
+      handleUnauthorized()
       setIsSigningOut(false)
     }
   }
@@ -588,6 +592,7 @@ function App() {
         <ClassPage
           preferFallbackContent={isDevPreview}
           defaultOpenCourseOrder={getDevPreviewCourseOrder()}
+          onUnauthorized={handleUnauthorized}
           onOpenHome={() => {
             setScreen('home')
           }}

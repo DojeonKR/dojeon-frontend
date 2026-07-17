@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './ClassPage.css'
 import homeIcon from '../assets/home.svg'
 import editIcon from '../assets/edit.svg'
@@ -81,6 +81,7 @@ interface ClassPageProps {
   onOpenNotebook: () => void
   onOpenProfile: () => void
   onOpenLesson: (courseId: number, lessonId: number) => void
+  onUnauthorized: () => void
 }
 
 function ClassPage({
@@ -91,6 +92,7 @@ function ClassPage({
   onOpenNotebook,
   onOpenProfile,
   onOpenLesson,
+  onUnauthorized,
 }: ClassPageProps) {
   const { data, loading, error, refetch } = useCoursesDashboard()
   const [manuallyToggled, setManuallyToggled] = useState<Map<number, boolean>>(new Map())
@@ -99,6 +101,11 @@ function ClassPage({
   const apiCourses = useMemo(() => data?.courses ?? [], [data])
   const courses = useMemo(() => getDisplayCourses(apiCourses), [apiCourses])
   const isUsingFallbackCourses = apiCourses.length === 0
+  const isUnauthorized = error?.status === 401 || error?.status === 403
+
+  useEffect(() => {
+    if (isUnauthorized) onUnauthorized()
+  }, [isUnauthorized, onUnauthorized])
 
   const progressPercent = useMemo(() => {
     if (isUsingFallbackCourses) return fallbackProgressPercent
@@ -148,6 +155,8 @@ function ClassPage({
       </main>
     )
   }
+
+  if (isUnauthorized) return null
 
   if (error && !isUsingFallbackCourses && !preferFallbackContent) {
     return (
