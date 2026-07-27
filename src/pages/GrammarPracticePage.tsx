@@ -593,12 +593,17 @@ function GrammarPracticePage({
   const fillResultImage = isCorrectAnswer ? choiceCorrectImage : choiceWrongImage
   const showMakeResultPanel = isMakeStep && isAnswered && (isCorrectAnswer || isWrongAnswer)
   const makeResultImage = isCorrectAnswer ? choiceCorrectImage : choiceWrongImage
+  const hasCompletedTextGrade = matchedTextGrade !== null
   const canMoveToNextPracticeStep =
-    isAnswered && !checkAnswer.isPending && (!isChoiceStep || showChoiceFeedbackPanel)
+    isAnswered &&
+    !checkAnswer.isPending &&
+    (!isChoiceStep || showChoiceFeedbackPanel) &&
+    (!(isFillStep || isMakeStep) || hasCompletedTextGrade)
   const currentTextAnswer = isMakeStep ? makeSentenceAnswer : typedAnswer
   const submittedTextAnswer = isMakeStep ? submittedMakeSentenceAnswer : submittedTypedAnswer
   const canSubmitTextAnswer =
     (isFillStep || isMakeStep) &&
+    !checkAnswer.isPending &&
     currentTextAnswer.trim().length > 0 &&
     currentTextAnswer.trim() !== submittedTextAnswer
   const isNextPracticeStepEnabled = canSubmitTextAnswer || canMoveToNextPracticeStep
@@ -1022,7 +1027,17 @@ function GrammarPracticePage({
     }
 
     const question = kind === 'fill' ? fillQuestion : makeQuestion
-    if (!question) return
+    if (!question) {
+      const correctAnswer = kind === 'fill' ? fillCorrectAnswer : makeCorrectAnswer
+      const grade: TextAnswerGrade = {
+        answer,
+        correct: answer === correctAnswer,
+        correctAnswer,
+      }
+      if (kind === 'fill') setFillGrade(grade)
+      else setMakeGrade(grade)
+      return
+    }
 
     if (question.answer) {
       const grade: TextAnswerGrade = {
