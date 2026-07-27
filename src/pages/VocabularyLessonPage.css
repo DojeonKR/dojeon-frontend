@@ -173,6 +173,7 @@
   margin-left: -20px;
   margin-right: -20px;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .vocabulary-lesson-carousel-track {
