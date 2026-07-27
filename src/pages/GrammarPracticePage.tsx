@@ -1031,7 +1031,7 @@ function GrammarPracticePage({
       const correctAnswer = kind === 'fill' ? fillCorrectAnswer : makeCorrectAnswer
       const grade: TextAnswerGrade = {
         answer,
-        correct: answer === correctAnswer,
+        correct: normalizeAnswerText(answer) === normalizeAnswerText(correctAnswer),
         correctAnswer,
       }
       if (kind === 'fill') setFillGrade(grade)
