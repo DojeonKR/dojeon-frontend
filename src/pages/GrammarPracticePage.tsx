@@ -148,14 +148,15 @@ interface AnnotatedDialogueLineModel {
   source: AnnotatedLineSource
 }
 
-// 자료의 dialogues 를 대화/라인 인덱스를 유지한 채 펼쳐서
-// 각 라인의 jsonPath($.dialogues[i].lines[j].ko)를 함께 만든다.
+// 지문 데이터는 nested dialogues -> flat dialogue -> body 순서로 읽는다.
 function toAnnotatedDialogueLines(material: SectionMaterial | null): AnnotatedDialogueLineModel[] {
   if (!material) return []
 
+  const content = material.contentText
   const models: AnnotatedDialogueLineModel[] = []
-  ;(material.contentText?.dialogues ?? []).forEach((dialogue, dialogueIndex) => {
+  ;(content?.dialogues ?? []).forEach((dialogue, dialogueIndex) => {
     ;(dialogue.lines ?? []).forEach((line, lineIndex) => {
+      if (!line.ko.trim()) return
       models.push({
         key: `${dialogueIndex}-${lineIndex}`,
         speaker: line.speaker,
@@ -168,6 +169,42 @@ function toAnnotatedDialogueLines(material: SectionMaterial | null): AnnotatedDi
       })
     })
   })
+  if (models.length > 0) return models
+
+  ;(content?.dialogue ?? []).forEach((line, lineIndex) => {
+    if (!line.ko.trim()) return
+    models.push({
+      key: `dialogue-${lineIndex}`,
+      speaker: line.speaker,
+      line,
+      source: {
+        text: line.ko,
+        materialId: material.id,
+        jsonPath: `$.dialogue[${lineIndex}].ko`,
+      },
+    })
+  })
+  if (models.length > 0) return models
+
+  ;(content?.body ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .forEach((line, lineIndex) => {
+      const match = line.match(/^([^:：]+)[:：]\s*(.+)$/)
+      const speaker = match?.[1].trim() ?? ''
+      const text = (match?.[2] ?? line).trim()
+      models.push({
+        key: `body-${lineIndex}`,
+        speaker,
+        line: { speaker, ko: text, en: '', he: '' },
+        source: {
+          text,
+          materialId: material.id,
+          jsonPath: null,
+        },
+      })
+    })
   return models
 }
 
@@ -190,7 +227,16 @@ function findMaterialByKeywords(
   )
   if (byType) return byType
 
-  return materials.find((material) => (material.contentText?.dialogues?.length ?? 0) > 0) ?? null
+  return (
+    materials.find((material) => {
+      const content = material.contentText
+      return (
+        (content?.dialogues?.some((dialogue) => (dialogue.lines?.length ?? 0) > 0) ?? false) ||
+        (content?.dialogue?.length ?? 0) > 0 ||
+        Boolean(content?.body?.trim())
+      )
+    }) ?? null
+  )
 }
 
 interface TextAnswerGrade {
@@ -269,14 +315,6 @@ function GrammarPracticePage({
   )
   const listeningDialogueLines = useMemo(
     () => toAnnotatedDialogueLines(listeningMaterial),
-    [listeningMaterial],
-  )
-  const listeningTranscriptLines = useMemo(
-    () =>
-      (listeningMaterial?.contentText.transcript ?? '')
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0),
     [listeningMaterial],
   )
   const serverPracticeQuestions = useMemo(
@@ -1812,19 +1850,12 @@ function GrammarPracticePage({
                 {isInitialMaterialsLoading ? null : listeningDialogueLines.length > 0 ? (
                   listeningDialogueLines.map((model) => (
                     <p key={model.key} className="grammar-practice-listening-script-line">
-                      <span className="grammar-practice-listening-script-speaker">{model.speaker}</span>{' '}
+                      {model.speaker ? (
+                        <>
+                          <span className="grammar-practice-listening-script-speaker">{model.speaker}</span>{' '}
+                        </>
+                      ) : null}
                       {renderAnnotatedLineText(model.source)}
-                    </p>
-                  ))
-                ) : listeningTranscriptLines.length > 0 ? (
-                  listeningTranscriptLines.map((line, index) => (
-                    <p key={`${index}-${line}`} className="grammar-practice-listening-script-line">
-                      {/* transcript 는 라인별 jsonPath 를 알 수 없어 원문 일치로만 unit 을 찾는다. */}
-                      {renderAnnotatedLineText({
-                        text: line,
-                        materialId: listeningMaterial?.id ?? null,
-                        jsonPath: null,
-                      })}
                     </p>
                   ))
                 ) : grammarPracticeDemo ? (
@@ -2071,9 +2102,13 @@ function GrammarPracticePage({
               {readingDialogueLines.length > 0 ? (
                 readingDialogueLines.map((model) => (
                   <p key={model.key} className="grammar-practice-reading-line">
-                    <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
-                      {model.speaker}
-                    </span>{' '}
+                    {model.speaker ? (
+                      <>
+                        <span className={`grammar-practice-reading-name ${showVocab ? 'is-visible' : ''}`}>
+                          {model.speaker}
+                        </span>{' '}
+                      </>
+                    ) : null}
                     {renderAnnotatedLineText(model.source)}
                   </p>
                 ))

@@ -8,8 +8,8 @@ export interface MaterialExplanation {
 export interface DialogueLine {
     speaker: string;
     ko: string;
-    en: string;
-    he: string;
+    en?: string;
+    he?: string;
 }
 
 export interface Dialogue {
@@ -43,7 +43,7 @@ export interface MaterialPractice {
 
 // GET /section/{id}/material -> data: { materials: [...] }
 // material 식별자는 materialId 로 오고, contentText 는 자료 종류마다 채워지는 필드가 다르다.
-// (문법표는 description + table, 지문/대본은 dialogues 등)
+// (문법표는 description + table, 지문/대본은 dialogues/dialogue/body 등)
 export interface MaterialContentText {
     title: string;
     description?: string | null;
@@ -51,6 +51,8 @@ export interface MaterialContentText {
     explanations?: MaterialExplanation[];
     imageUrl?: string;
     dialogues?: Dialogue[];
+    dialogue?: DialogueLine[];
+    body?: string | null;
     audioUrl?: string | null;
     transcript?: string | null;
     practices?: MaterialPractice[];
