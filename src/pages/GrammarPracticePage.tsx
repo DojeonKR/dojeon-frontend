@@ -110,6 +110,44 @@ function GrammarPracticePage({
 
   const choicePrompt = firstMcq?.questionText ?? fallbackChoicePrompt
   const choiceOptions = firstMcq?.options ?? fallbackChoiceOptions
+  const fillPromptParts = useMemo(() => {
+    const stripQuestionNumber = (line: string) => line.replace(/^\s*\d+\.\s*/, '')
+    const splitBlankLine = (line: string) => {
+      const blank = line.match(/_{4,}/)
+      if (!blank || blank.index === undefined) return null
+
+      return {
+        beforeBlank: line.slice(0, blank.index).trimEnd(),
+        afterBlank: line.slice(blank.index + blank[0].length).trimStart(),
+      }
+    }
+    const lines = choicePrompt
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+    const blankLineIndex = lines.findIndex((line) => /_{4,}/.test(line))
+
+    if (blankLineIndex < 1) {
+      const normalizedPrompt = stripQuestionNumber(choicePrompt.replace(/\s+/g, ' ').trim())
+      const match = normalizedPrompt.match(/^(질문:\s*.+?\([^)]*\))\s+(.+_{4,}.+)$/)
+      const blankParts = match ? splitBlankLine(match[2]) : null
+
+      if (!match || !blankParts) return null
+
+      return {
+        promptLine: match[1],
+        ...blankParts,
+      }
+    }
+
+    const blankParts = splitBlankLine(lines[blankLineIndex])
+    if (!blankParts) return null
+
+    return {
+      promptLine: lines.slice(0, blankLineIndex).map(stripQuestionNumber).join(' '),
+      ...blankParts,
+    }
+  }, [choicePrompt])
 
   const [serverGradedAnswers, setServerGradedAnswers] = useState<Record<string, boolean>>({})
 
@@ -529,6 +567,32 @@ function GrammarPracticePage({
     pushHistory()
     setPracticeStep(nextStep)
   }
+
+  const answerColumn = (
+    <div className="grammar-practice-answer-column">
+      {isFillStep ? (
+        <input
+          type="text"
+          className="grammar-practice-answer-input"
+          value={typedAnswer}
+          enterKeyHint="done"
+          onChange={(e) => setTypedAnswer(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              pushHistory()
+              setSubmittedTypedAnswer(typedAnswer.trim())
+            }
+          }}
+        />
+      ) : (
+        <div className="grammar-practice-answer-slot">{isAnswered ? selectedAnswer : null}</div>
+      )}
+      {isFillStep && isWrongAnswer ? (
+        <p className="grammar-practice-correct-answer grammar-practice-correct-answer-fill">마시다</p>
+      ) : null}
+    </div>
+  )
 
   if (isFillIntroStep) {
     return (
@@ -1500,33 +1564,24 @@ function GrammarPracticePage({
               }`}
             >
               <div className="grammar-practice-question-stack">
-                <div className="grammar-practice-question-row">
-                  <p className="grammar-practice-question-text">{choicePrompt}</p>
-                  <div className="grammar-practice-answer-column">
-                    {isFillStep ? (
-                      <input
-                        type="text"
-                        className="grammar-practice-answer-input"
-                        value={typedAnswer}
-                        enterKeyHint="done"
-                        onChange={(e) => setTypedAnswer(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            pushHistory()
-                            setSubmittedTypedAnswer(typedAnswer.trim())
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="grammar-practice-answer-slot">{isAnswered ? selectedAnswer : null}</div>
-                    )}
-                    {isFillStep && isWrongAnswer ? (
-                      <p className="grammar-practice-correct-answer grammar-practice-correct-answer-fill">마시다</p>
-                    ) : null}
+                {isFillStep && fillPromptParts ? (
+                  <div className="grammar-practice-fill-prompt-lines">
+                    <p className="grammar-practice-question-text grammar-practice-fill-prompt-line">
+                      {fillPromptParts.promptLine}
+                    </p>
+                    <div className="grammar-practice-question-row grammar-practice-fill-sentence-line">
+                      <span className="grammar-practice-question-text">{fillPromptParts.beforeBlank}</span>
+                      {answerColumn}
+                      <span className="grammar-practice-question-text">{fillPromptParts.afterBlank}</span>
+                    </div>
                   </div>
-                  <span className="grammar-practice-question-dot">.</span>
-                </div>
+                ) : (
+                  <div className="grammar-practice-question-row">
+                    <p className="grammar-practice-question-text">{choicePrompt}</p>
+                    {answerColumn}
+                    <span className="grammar-practice-question-dot">.</span>
+                  </div>
+                )}
               </div>
             </section>
 
