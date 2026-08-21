@@ -227,16 +227,7 @@ function findMaterialByKeywords(
   )
   if (byType) return byType
 
-  return (
-    materials.find((material) => {
-      const content = material.contentText
-      return (
-        (content?.dialogues?.some((dialogue) => (dialogue.lines?.length ?? 0) > 0) ?? false) ||
-        (content?.dialogue?.length ?? 0) > 0 ||
-        Boolean(content?.body?.trim())
-      )
-    }) ?? null
-  )
+  return materials.find((material) => toAnnotatedDialogueLines(material).length > 0) ?? null
 }
 
 interface TextAnswerGrade {
