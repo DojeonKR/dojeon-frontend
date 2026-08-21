@@ -168,11 +168,9 @@
 
 .lesson-detail-path-list {
   margin-top: 12px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 0;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   width: 100%;
 }
 
@@ -183,7 +181,6 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex: 0 1 auto;
   min-width: 0;
   cursor: pointer;
 }
@@ -209,6 +206,10 @@
 .lesson-detail-path-label {
   color: var(--dojeon-color-gray-900);
   font: var(--dojeon-type-button-small);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lesson-detail-progress-section {

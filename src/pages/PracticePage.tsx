@@ -1,6 +1,6 @@
 import './PracticePage.css'
 import homeIcon from '../assets/home.svg'
-import editIcon from '../assets/edit.svg'
+import classIcon from '../assets/Class.svg'
 import fileIcon from '../assets/file.svg'
 import bookOpenIcon from '../assets/book-open.svg'
 import profileIcon from '../assets/user.svg'
@@ -8,7 +8,7 @@ import characterImage from '../assets/2.png'
 
 const tabs = [
   { icon: homeIcon, label: 'HOME' },
-  { icon: editIcon, label: 'CLASS' },
+  { icon: classIcon, label: 'CLASS' },
   { icon: fileIcon, label: 'PRACTICE' },
   { icon: bookOpenIcon, label: 'NOTEBOOK' },
   { icon: profileIcon, label: 'PROFILE' },

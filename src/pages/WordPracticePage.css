@@ -1,0 +1,379 @@
+.word-practice-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: var(--dojeon-color-background);
+  display: flex;
+  flex-direction: column;
+}
+
+.word-practice-content {
+  flex: 1;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 0 24px 238px;
+  box-sizing: border-box;
+}
+
+.word-practice-header {
+  position: relative;
+  min-height: 56px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-practice-header h1 {
+  margin: 0;
+  color: var(--dojeon-color-gray-900);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.word-practice-back {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dojeon-color-gray-800);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.word-practice-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.word-practice-progress {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  margin-top: 21px;
+}
+
+.word-practice-progress-track,
+.word-practice-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 7px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.word-practice-progress-track {
+  width: 100%;
+  background: var(--dojeon-color-gray-200);
+}
+
+.word-practice-progress-fill {
+  background: var(--dojeon-color-primary-action);
+  z-index: 1;
+}
+
+.word-practice-progress-dot {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.word-practice-progress-dot.is-past {
+  background: var(--dojeon-color-surface);
+}
+
+.word-practice-progress-dot.is-upcoming {
+  background: var(--dojeon-color-primary-300);
+}
+
+.word-practice-question {
+  padding-top: 28px;
+}
+
+.word-practice-instruction {
+  margin: 0;
+  color: var(--dojeon-color-gray-900);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.word-practice-card {
+  width: 100%;
+  height: 201px;
+  margin-top: 28px;
+  padding: 24px 18px;
+  border: 1px solid var(--dojeon-color-primary-border);
+  border-radius: 18px;
+  background: var(--dojeon-color-primary-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.word-practice-card h2 {
+  margin: 0;
+  color: var(--dojeon-color-gray-900);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.word-practice-options {
+  width: 100%;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.word-practice-options button {
+  width: 100%;
+  height: 65px;
+  padding: 8px;
+  border: 1px solid var(--dojeon-color-gray-200);
+  border-radius: 13px;
+  background: var(--dojeon-color-surface);
+  color: var(--dojeon-color-gray-900);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.word-practice-options button.is-selected {
+  border: 2px solid var(--dojeon-color-primary-300);
+  color: var(--dojeon-color-primary-action);
+  font-weight: 500;
+}
+
+.word-practice-options button.is-correct {
+  border: 2px solid var(--dojeon-color-success);
+  background: var(--dojeon-color-success-surface);
+  color: var(--dojeon-color-success);
+  font-weight: 700;
+}
+
+.word-practice-options button.is-wrong {
+  border: 2px solid var(--dojeon-color-error-strong);
+  background: var(--dojeon-color-error-surface);
+  color: var(--dojeon-color-error-strong);
+  font-weight: 500;
+}
+
+.word-practice-footer {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(390px, 100%);
+  min-height: calc(84px + env(safe-area-inset-bottom));
+  padding: 16px 24px calc(16px + env(safe-area-inset-bottom));
+  background: transparent;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto 52px;
+  gap: 0;
+  z-index: 3;
+}
+
+.word-practice-screen.is-correct .word-practice-footer {
+  background: var(--dojeon-color-success-surface);
+  grid-template-rows: 120px 52px;
+  gap: 12px;
+}
+
+.word-practice-screen.is-wrong .word-practice-footer {
+  background: var(--dojeon-color-error-surface);
+  grid-template-rows: 120px 52px;
+  gap: 12px;
+}
+
+.word-practice-feedback {
+  min-width: 0;
+  min-height: 0;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.word-practice-feedback-label {
+  color: var(--dojeon-color-success);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-label {
+  color: var(--dojeon-color-error-strong);
+}
+
+.word-practice-feedback-icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--dojeon-color-success);
+}
+
+.word-practice-feedback-icon::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 7px;
+  height: 4px;
+  border-left: 2px solid var(--dojeon-color-surface);
+  border-bottom: 2px solid var(--dojeon-color-surface);
+  transform: rotate(-45deg);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-icon {
+  background: var(--dojeon-color-error-strong);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-icon::before,
+.word-practice-screen.is-wrong .word-practice-feedback-icon::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 8px;
+  height: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dojeon-color-surface);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-icon::before {
+  transform: rotate(45deg);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-icon::after {
+  transform: rotate(-45deg);
+}
+
+.word-practice-feedback-art {
+  position: absolute;
+  right: 20px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  width: 134px;
+  height: 118px;
+  pointer-events: none;
+}
+
+.word-practice-feedback-art img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 94px;
+  height: 94px;
+  object-fit: contain;
+  z-index: 2;
+}
+
+.word-practice-feedback-mark {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 88px;
+  height: 88px;
+  border: 13px solid var(--dojeon-color-success);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-mark {
+  border: 0;
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-mark::before,
+.word-practice-screen.is-wrong .word-practice-feedback-mark::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 106px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--dojeon-color-error-mark);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-mark::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.word-practice-screen.is-wrong .word-practice-feedback-mark::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.word-practice-next,
+.word-practice-status button {
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--dojeon-color-primary-action);
+  color: var(--dojeon-color-surface);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.word-practice-next {
+  position: relative;
+  grid-row: 2;
+  z-index: 4;
+}
+
+.word-practice-next:disabled {
+  background: var(--dojeon-color-gray-300);
+  cursor: not-allowed;
+}
+
+.word-practice-status {
+  min-height: 50vh;
+  color: var(--dojeon-color-gray-600);
+  font: var(--dojeon-type-body-medium);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.word-practice-status button {
+  width: 180px;
+}
+
+.word-practice-back:focus-visible,
+.word-practice-options button:focus-visible,
+.word-practice-next:focus-visible,
+.word-practice-status button:focus-visible {
+  outline: 2px solid var(--dojeon-color-primary-action);
+  outline-offset: 2px;
+}

@@ -20,6 +20,8 @@ export function useSubscriptionPlans(enabled: boolean): UseSubscriptionPlansStat
     queryKey: ['subscription', 'plans'],
     queryFn: ({ signal }) => fetchSubscriptionPlans(signal),
     enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 
   return {

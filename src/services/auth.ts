@@ -103,50 +103,23 @@ const AUTH_SESSION_KEY = 'dojeon:auth.session'
 export const LOGIN_CREDENTIALS_ERROR_MESSAGE =
   'Your ID or password is incorrect. Please enter the correct ID or password.'
 const baseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
-const isMockMode =
-  ((import.meta.env.VITE_MOCK_AUTH_API as string | undefined) ||
-    (import.meta.env.VITE_MOCK_VERIFICATION_API as string | undefined) ||
-    '').toLowerCase() === 'true'
-const mockDelayMs =
-  Number.parseInt(
-    (import.meta.env.VITE_MOCK_AUTH_DELAY_MS as string | undefined) ||
-      (import.meta.env.VITE_MOCK_VERIFICATION_DELAY_MS as string | undefined) ||
-      '500',
-    10,
-  ) || 500
-const mockVerificationCode =
-  ((import.meta.env.VITE_MOCK_VERIFICATION_CODE as string | undefined) || '123456').trim() ||
-  '123456'
+const isMockMode = (import.meta.env.VITE_MOCK_AUTH_API as string | undefined)?.toLowerCase() === 'true'
+const mockDelayMs = Number.parseInt((import.meta.env.VITE_MOCK_AUTH_DELAY_MS as string | undefined) ?? '500', 10) || 500
+const mockVerificationCode = ((import.meta.env.VITE_MOCK_VERIFICATION_CODE as string | undefined) ?? '123456').trim() || '123456'
 
-const buildEndpoint = (path: string, envKey?: string) => {
-  const override = envKey
-    ? ((import.meta.env[envKey as keyof ImportMetaEnv] as string | undefined) ?? '').trim()
-    : ''
-
-  if (override) {
-    return override
-  }
-
-  return baseUrl ? `${baseUrl}${path}` : path
-}
+const buildEndpoint = (path: string) => (baseUrl ? `${baseUrl}${path}` : path)
 
 const endpoints = {
-  sendEmailCode: buildEndpoint('/auth/email/send', 'VITE_AUTH_EMAIL_SEND_URL'),
-  verifyEmailCode: buildEndpoint('/auth/email/verify', 'VITE_AUTH_EMAIL_VERIFY_URL'),
-  signup: buildEndpoint('/auth/signup', 'VITE_AUTH_SIGNUP_URL'),
-  login: buildEndpoint('/auth/login', 'VITE_AUTH_LOGIN_URL'),
-  googleLogin: buildEndpoint('/auth/google', 'VITE_AUTH_GOOGLE_URL'),
-  reissue: buildEndpoint('/auth/reissue', 'VITE_AUTH_REISSUE_URL'),
-  logout: buildEndpoint('/auth/logout', 'VITE_AUTH_LOGOUT_URL'),
-  requestPasswordReset: buildEndpoint(
-    '/auth/password/reset-request',
-    'VITE_AUTH_PASSWORD_RESET_REQUEST_URL',
-  ),
-  confirmPasswordReset: buildEndpoint(
-    '/auth/password/reset-confirm',
-    'VITE_AUTH_PASSWORD_RESET_CONFIRM_URL',
-  ),
-  checkNickname: buildEndpoint('/auth/check-nickname', 'VITE_AUTH_CHECK_NICKNAME_URL'),
+  sendEmailCode: buildEndpoint('/auth/email/send'),
+  verifyEmailCode: buildEndpoint('/auth/email/verify'),
+  signup: buildEndpoint('/auth/signup'),
+  login: buildEndpoint('/auth/login'),
+  googleLogin: buildEndpoint('/auth/google'),
+  reissue: buildEndpoint('/auth/reissue'),
+  logout: buildEndpoint('/auth/logout'),
+  requestPasswordReset: buildEndpoint('/auth/password/reset-request'),
+  confirmPasswordReset: buildEndpoint('/auth/password/reset-confirm'),
+  checkNickname: buildEndpoint('/auth/check-nickname'),
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -341,13 +314,6 @@ export const buildAuthSession = (
   email: normalizeEmail(email),
   ...tokenData,
 })
-
-export const getSendEmailCodeEndpoint = () => endpoints.sendEmailCode
-export const getVerifyEmailCodeEndpoint = () => endpoints.verifyEmailCode
-export const getSignupEndpoint = () => endpoints.signup
-export const getLoginEndpoint = () => endpoints.login
-export const getReissueEndpoint = () => endpoints.reissue
-export const getLogoutEndpoint = () => endpoints.logout
 
 export async function requestEmailVerificationCode(email: string): Promise<SendEmailCodeData> {
   const normalizedEmail = normalizeEmail(email)

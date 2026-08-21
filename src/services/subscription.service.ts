@@ -1,4 +1,4 @@
-import { getAuthToken } from './session.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 import type {
   SubscriptionPlanData,
   SubscriptionPlanResponse,
@@ -34,7 +34,7 @@ export async function fetchSubscriptionPlans(
   let res: Response
 
   try {
-    res = await fetch(`${API_BASE_URL}/subscription/plan`, {
+    res = await authenticatedFetch(`${API_BASE_URL}/subscription/plan`, {
       method: 'GET',
       headers: buildHeaders(),
       signal,

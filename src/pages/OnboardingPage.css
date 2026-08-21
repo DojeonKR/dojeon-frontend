@@ -335,6 +335,12 @@
   cursor: pointer;
 }
 
+.onboarding-save-error {
+  margin-top: 12px;
+  color: var(--dojeon-color-error);
+  font: var(--dojeon-type-caption);
+}
+
 .onboarding-next-btn.disabled {
   opacity: 0.45;
   cursor: not-allowed;

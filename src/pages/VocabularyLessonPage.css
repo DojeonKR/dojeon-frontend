@@ -173,6 +173,7 @@
   margin-left: -20px;
   margin-right: -20px;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .vocabulary-lesson-carousel-track {
@@ -666,4 +667,18 @@
   font-weight: 500;
   line-height: 1.35;
   text-align: center;
+}
+
+.vocabulary-lesson-flashcards-back-button {
+  width: 181px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--dojeon-color-secondary-container);
+  color: var(--dojeon-color-gray-700);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  align-self: center;
 }

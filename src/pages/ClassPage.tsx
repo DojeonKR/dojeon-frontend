@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './ClassPage.css'
 import homeIcon from '../assets/home.svg'
-import editIcon from '../assets/edit.svg'
+import classIcon from '../assets/Class.svg'
 import fileIcon from '../assets/file.svg'
 import bookOpenIcon from '../assets/book-open.svg'
 import profileIcon from '../assets/user.svg'
@@ -10,7 +10,7 @@ import type { DashboardCourse } from '../types/dasboard.types.ts'
 
 const tabs = [
   { icon: homeIcon, label: 'HOME' },
-  { icon: editIcon, label: 'CLASS' },
+  { icon: classIcon, label: 'CLASS' },
   { icon: fileIcon, label: 'PRACTICE' },
   { icon: bookOpenIcon, label: 'NOTEBOOK' },
   { icon: profileIcon, label: 'PROFILE' },
@@ -74,19 +74,25 @@ function getDisplayCourses(apiCourses: DashboardCourse[]): DashboardCourse[] {
 }
 
 interface ClassPageProps {
+  preferFallbackContent?: boolean
+  defaultOpenCourseOrder?: number
   onOpenHome: () => void
   onOpenPractice: () => void
   onOpenNotebook: () => void
   onOpenProfile: () => void
   onOpenLesson: (courseId: number, lessonId: number) => void
+  onUnauthorized: () => void
 }
 
 function ClassPage({
+  preferFallbackContent = false,
+  defaultOpenCourseOrder,
   onOpenHome,
   onOpenPractice,
   onOpenNotebook,
   onOpenProfile,
   onOpenLesson,
+  onUnauthorized,
 }: ClassPageProps) {
   const { data, loading, error, refetch } = useCoursesDashboard()
   const [manuallyToggled, setManuallyToggled] = useState<Map<number, boolean>>(new Map())
@@ -95,6 +101,11 @@ function ClassPage({
   const apiCourses = useMemo(() => data?.courses ?? [], [data])
   const courses = useMemo(() => getDisplayCourses(apiCourses), [apiCourses])
   const isUsingFallbackCourses = apiCourses.length === 0
+  const isUnauthorized = error?.status === 401 || error?.status === 403
+
+  useEffect(() => {
+    if (isUnauthorized) onUnauthorized()
+  }, [isUnauthorized, onUnauthorized])
 
   const progressPercent = useMemo(() => {
     if (isUsingFallbackCourses) return fallbackProgressPercent
@@ -115,12 +126,16 @@ function ClassPage({
 
   const openCourseIds = useMemo(() => {
     const open = new Set<number>()
+    if (defaultOpenCourseOrder !== undefined && !manuallyToggled.size) {
+      const defaultCourse = courses.find((course) => course.orderNum === defaultOpenCourseOrder)
+      if (defaultCourse) open.add(defaultCourse.courseId)
+    }
     for (const [courseId, isOpen] of manuallyToggled) {
       if (isOpen) open.add(courseId)
       else open.delete(courseId)
     }
     return open
-  }, [manuallyToggled])
+  }, [courses, defaultOpenCourseOrder, manuallyToggled])
 
   const toggleCourse = (courseId: number) => {
     const currentlyOpen = openCourseIds.has(courseId)
@@ -131,7 +146,7 @@ function ClassPage({
     })
   }
 
-  if (loading) {
+  if (loading && !preferFallbackContent) {
     return (
       <main className="class-screen">
         <section className="class-content">
@@ -141,7 +156,9 @@ function ClassPage({
     )
   }
 
-  if (error && !isUsingFallbackCourses) {
+  if (isUnauthorized) return null
+
+  if (error && !isUsingFallbackCourses && !preferFallbackContent) {
     return (
       <main className="class-screen">
         <section className="class-content">

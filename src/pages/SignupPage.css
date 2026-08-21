@@ -247,7 +247,7 @@
 }
 
 .password-match-message-valid {
-  color: var(--dojeon-color-primary-action);
+  color: var(--dojeon-color-success);
 }
 
 .password-match-message-invalid {
@@ -255,7 +255,7 @@
 }
 
 .password-requirement-satisfied {
-  color: var(--dojeon-color-primary-action);
+  color: var(--dojeon-color-success);
 }
 
 .password-requirement-unsatisfied {

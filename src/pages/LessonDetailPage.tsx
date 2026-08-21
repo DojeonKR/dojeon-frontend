@@ -1,21 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './LessonDetailPage.css'
 import { useLessonSections } from '../hooks/useLessonSections.ts'
 import { useSaveSectionProgress } from '../hooks/useSaveSectionProgress.ts'
-import type { LessonSectionsData } from '../types/lessons.types.ts'
+import { useUpdateLessonPreferences } from '../hooks/useUpdateLessonPreferences.ts'
+import type {
+  LessonSectionsData,
+  LessonSectionType,
+} from '../types/lessons.types.ts'
 
 type LessonPathId = 'vocab' | 'grammar' | 'reading' | 'listening'
 
-const lessonPathOptions: { id: LessonPathId; label: string }[] = [
-  { id: 'vocab', label: 'Vocab' },
-  { id: 'grammar', label: 'Grammar' },
-  { id: 'reading', label: 'Reading' },
-  { id: 'listening', label: 'Listening' },
+const lessonPathOptions: {
+  id: LessonPathId
+  label: string
+  sectionType: LessonSectionType
+}[] = [
+  { id: 'vocab', label: 'Vocab', sectionType: 'VOCAB' },
+  { id: 'grammar', label: 'Grammar', sectionType: 'GRAMMAR' },
+  { id: 'reading', label: 'Reading', sectionType: 'READING' },
+  { id: 'listening', label: 'Listening', sectionType: 'LISTENING' },
 ]
 
 const minimumModuleFillPercent = 6
 const lessonProgressDotSize = 6
 const lessonProgressDotOverrun = 10
+const lessonProgressDotCount = 4
 
 const previewLessonTitles = ['Vocabulary', 'Grammar 1', 'Grammar 2', 'Grammar 3', 'Reading', 'Listening 1']
 
@@ -45,6 +54,7 @@ function createPreviewLessonSectionsData(lessonId: number | null): LessonSection
       orderNum: index + 1,
     })),
     overallProgressPercent: 25,
+    selectedTypes: ['VOCAB', 'GRAMMAR', 'READING', 'LISTENING'],
     sections: previewLessonTitles.map((title, index) => ({
       sectionId: -(courseOrder * 1000 + lessonOrder * 10 + index + 1),
       type:
@@ -76,25 +86,32 @@ function getLessonProgressFillWidth(overallProgress: number, dotCount: number): 
   if (dotCount <= 0 || overallProgress <= 0) return '0%'
   if (overallProgress >= 100) return '100%'
 
-  const currentDotIndex = Math.min(
-    Math.max(Math.floor((overallProgress / 100) * (dotCount - 1)), 0),
-    dotCount - 1,
-  )
+  const currentDotIndex = getLessonProgressActiveDotIndex(overallProgress, dotCount)
   return `calc(${getLessonProgressDotPosition(currentDotIndex, dotCount)} + ${lessonProgressDotOverrun}px)`
 }
 
-function pathIdFromSectionType(sectionType: string): LessonPathId | null {
-  switch (sectionType) {
-    case 'VOCAB': return 'vocab'
-    case 'GRAMMAR': return 'grammar'
-    case 'READING': return 'reading'
-    case 'LISTENING': return 'listening'
-    default: return null
-  }
+function getLessonProgressActiveDotIndex(overallProgress: number, dotCount: number): number {
+  if (dotCount <= 0 || overallProgress <= 0) return -1
+  if (overallProgress >= 100) return dotCount - 1
+
+  return Math.min(
+    Math.max(Math.ceil((overallProgress / 100) * (dotCount - 1)), 0),
+    dotCount - 1,
+  )
+}
+
+function getSectionPathId(sectionType: string): LessonPathId | null {
+  const normalizedType = sectionType.toUpperCase()
+  if (normalizedType.includes('VOCAB')) return 'vocab'
+  if (normalizedType.includes('GRAMMAR')) return 'grammar'
+  if (normalizedType.includes('READING')) return 'reading'
+  if (normalizedType.includes('LISTENING')) return 'listening'
+  return null
 }
 
 interface LessonDetailPageProps {
   lessonId: number | null
+  initialSelectedModuleOrder?: number
   onSelectLesson: (lessonId: number) => void
   onStartLesson: (sectionId: number, sectionType: string) => void
   onBack: () => void
@@ -102,6 +119,7 @@ interface LessonDetailPageProps {
 
 function LessonDetailPage({
   lessonId,
+  initialSelectedModuleOrder,
   onSelectLesson,
   onStartLesson,
   onBack,
@@ -109,13 +127,44 @@ function LessonDetailPage({
   const isPreviewLesson = lessonId !== null && lessonId < 0
   const { data, loading, error } = useLessonSections(isPreviewLesson ? null : lessonId)
   const saveProgress = useSaveSectionProgress()
+  const updatePreferences = useUpdateLessonPreferences()
+  const savePreferences = updatePreferences.mutate
 
   const [isLessonPickerOpen, setIsLessonPickerOpen] = useState(false)
-  const [selectedPathIds, setSelectedPathIds] = useState<Set<LessonPathId>>(
-    () => new Set(lessonPathOptions.map((option) => option.id)),
-  )
+  const [selectedPathIds, setSelectedPathIds] = useState<Set<LessonPathId> | null>(null)
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null)
   const [completedSectionIds, setCompletedSectionIds] = useState<Set<number>>(() => new Set())
+  const serverSelectedTypes = new Set(
+    data?.selectedTypes ?? lessonPathOptions.map((option) => option.sectionType),
+  )
+  const effectiveSelectedPathIds =
+    selectedPathIds ??
+    new Set(
+      lessonPathOptions
+        .filter((option) => serverSelectedTypes.has(option.sectionType))
+        .map((option) => option.id),
+    )
+
+  useEffect(() => {
+    if (
+      !data ||
+      lessonId === null ||
+      lessonId < 0 ||
+      selectedPathIds === null ||
+      selectedPathIds.size === 0
+    ) return
+
+    const timer = window.setTimeout(() => {
+      savePreferences({
+        lessonId,
+        selectedTypes: lessonPathOptions
+          .filter((option) => selectedPathIds.has(option.id))
+          .map((option) => option.sectionType),
+      })
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [data, lessonId, savePreferences, selectedPathIds])
 
   const lessonData = data ?? (isPreviewLesson ? createPreviewLessonSectionsData(lessonId) : null)
   const sections = lessonData?.sections ?? []
@@ -132,14 +181,19 @@ function LessonDetailPage({
     : lessonData?.overallProgressPercent ?? 0
   const lessonProgressFillWidth = getLessonProgressFillWidth(
     overallProgress,
-    sections.length,
+    lessonProgressDotCount,
   )
   const siblingLessons = lessonData?.siblingLessons ?? []
   const lessonTitle = lessonData?.title ?? ''
-  const filteredSections = sections.filter((section) => {
-    const pathId = pathIdFromSectionType(section.type)
-    return pathId !== null && selectedPathIds.has(pathId)
+  const displayedSections = sections.filter((section) => {
+    const pathId = getSectionPathId(section.type)
+    return pathId === null || effectiveSelectedPathIds.has(pathId)
   })
+  const initialSelectedModuleId =
+    initialSelectedModuleOrder !== undefined
+      ? sections[initialSelectedModuleOrder - 1]?.sectionId ?? null
+      : null
+  const effectiveSelectedModuleId = selectedModuleId ?? initialSelectedModuleId
 
   const getModuleProgressDisplayValue = (
     sectionId: number,
@@ -148,14 +202,14 @@ function LessonDetailPage({
   ) =>
     completedSectionIds.has(sectionId) || serverCompleted ? 100 :
     progressPercent >= 100 ? 100 : Math.max(progressPercent, minimumModuleFillPercent)
-  const selectedSection = sections.find((section) => section.sectionId === selectedModuleId)
+  const selectedSection = sections.find((section) => section.sectionId === effectiveSelectedModuleId)
   const selectedSectionIsCompleted = selectedSection
     ? isSectionCompleted(selectedSection.sectionId, selectedSection.isCompleted)
     : false
 
   const togglePath = (pathId: LessonPathId) => {
     setSelectedPathIds((current) => {
-      const next = new Set(current)
+      const next = new Set(current ?? effectiveSelectedPathIds)
 
       if (next.has(pathId)) {
         if (next.size === 1) return current
@@ -170,11 +224,11 @@ function LessonDetailPage({
   }
 
   const handleStartLesson = () => {
-    if (!filteredSections.length) return
-    const selectedModule = filteredSections.find((section) => section.sectionId === selectedModuleId)
-    const fallback = filteredSections.find((section) =>
+    if (!displayedSections.length) return
+    const selectedModule = displayedSections.find((section) => section.sectionId === effectiveSelectedModuleId)
+    const fallback = displayedSections.find((section) =>
       !isSectionCompleted(section.sectionId, section.isCompleted),
-    ) ?? filteredSections[0]
+    ) ?? displayedSections[0]
     const target = selectedModule ?? fallback
 
     if (target) {
@@ -183,27 +237,27 @@ function LessonDetailPage({
   }
 
   const handleMarkComplete = async () => {
-    if (selectedModuleId === null) return
-    const section = sections.find((s) => s.sectionId === selectedModuleId)
+    if (effectiveSelectedModuleId === null) return
+    const section = sections.find((s) => s.sectionId === effectiveSelectedModuleId)
     if (!section) return
     if (isSectionCompleted(section.sectionId, section.isCompleted)) return
 
-    if (selectedModuleId < 0) {
-      setCompletedSectionIds((current) => new Set(current).add(selectedModuleId))
+    if (effectiveSelectedModuleId < 0) {
+      setCompletedSectionIds((current) => new Set(current).add(effectiveSelectedModuleId))
       return
     }
 
     try {
       await saveProgress.mutateAsync({
-        sectionId: selectedModuleId,
+        sectionId: effectiveSelectedModuleId,
         payload: {
           currentPage: section.totalPages || 1,
           stayTimeSeconds: 0,
-          forceComplete: true,
-          difficulty: 'NORMAL',
+          isCompleted: true,
+          difficulty: section.type === 'GRAMMAR' ? 'NORMAL' : undefined,
         },
       })
-      setCompletedSectionIds((current) => new Set(current).add(selectedModuleId))
+      setCompletedSectionIds((current) => new Set(current).add(effectiveSelectedModuleId))
     } catch {
       // 사용자가 다시 시도할 수 있도록 선택한 모듈 상태를 유지한다.
     }
@@ -376,16 +430,16 @@ function LessonDetailPage({
                 type="button"
                 className="lesson-detail-path-item"
                 role="checkbox"
-                aria-checked={selectedPathIds.has(option.id)}
+                aria-checked={effectiveSelectedPathIds.has(option.id)}
                 onClick={() => togglePath(option.id)}
               >
                 <span
                   className={`lesson-detail-path-box ${
-                    selectedPathIds.has(option.id) ? 'lesson-detail-path-box-selected' : ''
+                    effectiveSelectedPathIds.has(option.id) ? 'lesson-detail-path-box-selected' : ''
                   }`}
                   aria-hidden="true"
                 >
-                  {selectedPathIds.has(option.id) ? (
+                  {effectiveSelectedPathIds.has(option.id) ? (
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                       <path
                         d="M2.1 5.1L4.1 7.1L7.9 2.9"
@@ -414,17 +468,16 @@ function LessonDetailPage({
               style={{ width: lessonProgressFillWidth }}
               aria-hidden="true"
             />
-            {sections.map((_, index) => (
+            {Array.from({ length: lessonProgressDotCount }).map((_, index) => (
               <span
                 key={index}
                 className={`lesson-detail-progress-dot ${
-                  overallProgress > 0 &&
-                  index <= Math.floor((overallProgress / 100) * (sections.length - 1))
+                  index <= getLessonProgressActiveDotIndex(overallProgress, lessonProgressDotCount)
                     ? 'lesson-detail-progress-dot-past'
                     : 'lesson-detail-progress-dot-upcoming'
                 }`}
                 style={{
-                  left: getLessonProgressDotPosition(index, sections.length),
+                  left: getLessonProgressDotPosition(index, lessonProgressDotCount),
                 }}
                 role="listitem"
               />
@@ -432,7 +485,7 @@ function LessonDetailPage({
           </div>
 
           <div className="lesson-detail-module-grid">
-            {filteredSections.map((section) => {
+            {displayedSections.map((section) => {
               const isCompleted = isSectionCompleted(section.sectionId, section.isCompleted)
 
               return (
@@ -440,17 +493,13 @@ function LessonDetailPage({
                   key={section.sectionId}
                   type="button"
                   className={`lesson-detail-module-card ${
-                    selectedModuleId === section.sectionId || isCompleted
+                    effectiveSelectedModuleId === section.sectionId || isCompleted
                       ? 'lesson-detail-module-card-selected'
                       : ''
                   } ${isCompleted ? 'lesson-detail-module-card-completed' : ''}`}
-                  onClick={() => {
-                    setSelectedModuleId((current) =>
-                      current === section.sectionId ? null : section.sectionId,
-                    )
-                  }}
+                  onClick={() => setSelectedModuleId(section.sectionId)}
                 >
-                  <h3 className="lesson-detail-module-title">{section.title}</h3>
+                  <h3 className="lesson-detail-module-title">{section.type}</h3>
                   <span className="lesson-detail-module-progress">
                     <span
                       className="lesson-detail-module-progress-fill"
@@ -469,7 +518,7 @@ function LessonDetailPage({
           </div>
 
           <div className="lesson-detail-action-row">
-            {selectedModuleId !== null && !selectedSectionIsCompleted ? (
+            {effectiveSelectedModuleId !== null && !selectedSectionIsCompleted ? (
               <div className="lesson-detail-complete-wrap">
                 <span className="lesson-detail-complete-bubble">Mark as complete</span>
                 <button

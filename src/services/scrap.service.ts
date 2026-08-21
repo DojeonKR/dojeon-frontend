@@ -11,7 +11,7 @@ import type {
     DeleteScrapResponse,
     DeleteScrapData,
 } from '../types/scraps.types.ts'
-import { getAuthToken } from './session.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -91,7 +91,7 @@ async function readSuccessBody<T extends {
 export async function fetchScrapDashboard(
     signal?: AbortSignal,
 ): Promise<ScrapDashboardData | null> {
-    const res = await fetch(`${API_BASE_URL}/scrap/dashboard`, {
+    const res = await authenticatedFetch(`${API_BASE_URL}/scrap/dashboard`, {
         method: 'GET',
         headers: buildHeaders(),
         signal,
@@ -131,7 +131,7 @@ export async function fetchScrapList(
     if (params.cursor) query.set('cursor', params.cursor)
     if (params.limit) query.set('limit', params.limit)
 
-    const res = await fetch(`${API_BASE_URL}/scrap?${query.toString()}`, {
+    const res = await authenticatedFetch(`${API_BASE_URL}/scrap?${query.toString()}`, {
         method: 'GET',
         headers: buildHeaders(),
         signal,
@@ -164,7 +164,7 @@ export async function fetchScrapList(
 export async function createScrap(
     payload: CreateScrapRequest,
 ): Promise<CreateScrapData | null> {
-    const res = await fetch(`${API_BASE_URL}/scrap`, {
+    const res = await authenticatedFetch(`${API_BASE_URL}/scrap`, {
         method: 'POST',
         headers: buildHeaders(),
         body: JSON.stringify(payload),
@@ -195,7 +195,7 @@ export async function createScrap(
  * DELETE /scrap/{scrapId} — remove a scrap owned by the current user.
  */
 export async function deleteScrap(scrapId: string): Promise<DeleteScrapData | null> {
-    const res = await fetch(`${API_BASE_URL}/scrap/${scrapId}`, {
+    const res = await authenticatedFetch(`${API_BASE_URL}/scrap/${scrapId}`, {
         method: 'DELETE',
         headers: buildHeaders(),
     })

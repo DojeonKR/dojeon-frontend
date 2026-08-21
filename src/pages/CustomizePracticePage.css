@@ -1,0 +1,182 @@
+.customize-practice-screen {
+  min-height: 100svh;
+  width: min(390px, 100%);
+  margin: 0 auto;
+  background: var(--dojeon-color-surface);
+  display: flex;
+  justify-content: center;
+}
+
+.customize-practice-content {
+  width: 100%;
+  min-height: 100svh;
+  padding: 0 18px calc(94px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.customize-practice-header {
+  position: relative;
+  min-height: 64px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.customize-practice-back {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dojeon-color-gray-800);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.customize-practice-back-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.customize-practice-title {
+  margin: 0;
+  color: var(--dojeon-color-gray-900);
+  font: var(--dojeon-type-subtitle-large);
+  letter-spacing: 0;
+}
+
+.customize-practice-form {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  margin-top: 79px;
+}
+
+.customize-practice-option-section {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.customize-practice-section-title {
+  width: 100%;
+  margin: 0 0 17px;
+  padding: 0;
+  color: var(--dojeon-color-gray-900);
+  font: var(--dojeon-type-subtitle-medium);
+  text-align: center;
+}
+
+.customize-practice-count-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.customize-practice-count-option,
+.customize-practice-language-option {
+  border: 1px solid var(--dojeon-color-gray-200);
+  background: var(--dojeon-color-surface);
+  color: var(--dojeon-color-gray-900);
+  font: var(--dojeon-type-body-large);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.customize-practice-count-option {
+  height: 74px;
+  padding: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.customize-practice-language-title {
+  margin-bottom: 18px;
+}
+
+.customize-practice-language-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.customize-practice-language-option {
+  height: 182px;
+  padding: 28px 12px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+}
+
+.customize-practice-direction-icon {
+  width: 18px;
+  height: 22px;
+  color: var(--dojeon-color-gray-500);
+}
+
+.customize-practice-option-selected {
+  border-color: var(--dojeon-color-primary-action);
+  color: var(--dojeon-color-primary-action);
+  box-shadow: 0 0 0 1px var(--dojeon-color-primary-action);
+}
+
+.customize-practice-option-selected .customize-practice-direction-icon {
+  color: var(--dojeon-color-primary-400);
+}
+
+.customize-practice-back:focus-visible,
+.customize-practice-next-button:focus-visible {
+  outline: 2px solid var(--dojeon-color-primary-action);
+  outline-offset: 2px;
+}
+
+.customize-practice-count-option:focus-visible,
+.customize-practice-language-option:focus-visible {
+  outline: 2px solid var(--dojeon-color-primary-action);
+  outline-offset: 2px;
+}
+
+.customize-practice-option-selected:focus-visible {
+  outline: 2px solid var(--dojeon-color-gray-900);
+  outline-offset: 3px;
+}
+
+.customize-practice-next-button {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(342px, calc(100% - 48px));
+  height: 52px;
+  margin: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--dojeon-color-primary-action);
+  color: var(--dojeon-color-surface);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.customize-practice-next-button:disabled {
+  background: var(--dojeon-color-gray-300);
+  cursor: not-allowed;
+}

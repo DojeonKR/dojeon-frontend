@@ -1,10 +1,12 @@
 import type {
+    PracticeTopic,
     PracticeTopicListData,
+    PracticeQuestion,
     PracticeQuestionsData,
     CheckAnswerRequest,
     CheckAnswerData,
 } from '../types/practice.types.ts'
-import { getAuthToken } from './session.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -50,7 +52,7 @@ async function fetchPracticeResponse<T>(
 ): Promise<T | null> {
     let res: Response
     try {
-        res = await fetch(input, init)
+        res = await authenticatedFetch(input, init)
     } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') throw error
         throw new PracticeApiError(fallbackMessage)
@@ -112,13 +114,50 @@ async function fetchPracticeResponse<T>(
     return body as T
 }
 
+// data 는 배열로 내려오지만, 혹시 { topics } / { questions } 로 감싸 오더라도 같은 모양으로 정규화한다.
+function toArray(data: unknown, wrapperKey: string): Record<string, unknown>[] {
+    if (Array.isArray(data)) return data as Record<string, unknown>[]
+    if (data && typeof data === 'object') {
+        const wrapped = (data as Record<string, unknown>)[wrapperKey]
+        if (Array.isArray(wrapped)) return wrapped as Record<string, unknown>[]
+    }
+    return []
+}
+
+function toNumber(value: unknown): number {
+    return typeof value === 'number' ? value : Number(value ?? 0)
+}
+
+function toNullableString(value: unknown): string | null {
+    return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+function normalizeTopic(raw: Record<string, unknown>): PracticeTopic {
+    return {
+        topicId: toNumber(raw.topicId ?? raw.id),
+        titleEn: String(raw.titleEn ?? ''),
+        isActive: raw.isActive !== false,
+    }
+}
+
+function normalizeQuestion(raw: Record<string, unknown>): PracticeQuestion {
+    return {
+        questionId: toNumber(raw.questionId ?? raw.id),
+        type: String(raw.type ?? ''),
+        questionText: String(raw.questionText ?? ''),
+        options: Array.isArray(raw.options) ? raw.options.map((option) => String(option)) : [],
+        answer: toNullableString(raw.answer ?? raw.correctAnswer),
+        explanation: toNullableString(raw.explanation),
+    }
+}
+
 /**
  * GET /practice/topic — list of active practice topics.
  */
 export async function fetchPracticeTopics(
     signal?: AbortSignal,
 ): Promise<PracticeTopicListData | null> {
-    return fetchPracticeResponse<PracticeTopicListData>(
+    const data = await fetchPracticeResponse<unknown>(
         `${API_BASE_URL}/practice/topic`,
         {
             method: 'GET',
@@ -127,16 +166,20 @@ export async function fetchPracticeTopics(
         },
         'Failed to fetch topics',
     )
+
+    if (data === null) return null
+    return toArray(data, 'topics').map(normalizeTopic)
 }
 
 /**
  * GET /practice/topic/{topicId}/question — questions for a given topic.
+ * 응답에 `answer` 가 포함되어 오므로 채점은 앱에서 바로 할 수 있다.
  */
 export async function fetchPracticeQuestions(
     topicId: number,
     signal?: AbortSignal,
 ): Promise<PracticeQuestionsData | null> {
-    return fetchPracticeResponse<PracticeQuestionsData>(
+    const data = await fetchPracticeResponse<unknown>(
         `${API_BASE_URL}/practice/topic/${topicId}/question`,
         {
             method: 'GET',
@@ -145,6 +188,9 @@ export async function fetchPracticeQuestions(
         },
         'Failed to fetch questions',
     )
+
+    if (data === null) return null
+    return toArray(data, 'questions').map(normalizeQuestion)
 }
 
 /**

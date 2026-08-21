@@ -39,6 +39,7 @@
   --dojeon-color-primary-container-soft: #f4eaf8;
   --dojeon-color-primary-border: #dfc9ec;
   --dojeon-color-primary-focus-ring: rgba(223, 201, 236, 0.35);
+  --dojeon-color-primary-shadow: var(--dojeon-color-primary-500);
   --dojeon-color-vocabulary-row: #fbf7fd;
   --dojeon-color-tab-inactive: #e1e2ee;
   --dojeon-color-dim: rgba(0, 0, 0, 0.45);

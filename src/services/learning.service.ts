@@ -5,8 +5,10 @@ import type {
 import type {
     LessonSectionsData,
     LessonSectionsResponse,
+    LessonSectionType,
+    UpdateLessonPreferencesData,
 } from '../types/lessons.types.ts'
-import { getAuthToken } from './session.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -39,7 +41,7 @@ async function fetchLearningResponse<T extends { isSuccess: boolean; message?: s
 ): Promise<T> {
     let res: Response
     try {
-        res = await fetch(input, init)
+        res = await authenticatedFetch(input, init)
     } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') throw error
         throw new LearningApiError(fallbackMessage)
@@ -109,6 +111,28 @@ export async function fetchLessonSections(
             signal,
         },
         'Failed to fetch lesson sections',
+    )
+    return body.data
+}
+
+export async function updateLessonPreferences(
+    lessonId: number,
+    selectedTypes: LessonSectionType[],
+): Promise<UpdateLessonPreferencesData | null> {
+    const body = await fetchLearningResponse<{
+        isSuccess: boolean
+        message?: string
+        code?: string
+        errorCode?: string
+        data: UpdateLessonPreferencesData | null
+    }>(
+        `${API_BASE_URL}/lessons/${lessonId}/preferences`,
+        {
+            method: 'PUT',
+            headers: buildHeaders(),
+            body: JSON.stringify({ selectedTypes }),
+        },
+        'Failed to save lesson preferences',
     )
     return body.data
 }

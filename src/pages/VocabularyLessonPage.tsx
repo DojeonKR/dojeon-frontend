@@ -1,20 +1,47 @@
-import { useMemo, useRef, useState } from 'react'
+import { type PointerEvent, useMemo, useRef, useState } from 'react'
 import characterImage from '../assets/character.png'
 import './VocabularyLessonPage.css'
 import { useSectionCards } from '../hooks/useSectionCards.ts'
 import { useCreateScrap } from '../hooks/useCreateScrap.ts'
 import { useDeleteScrap } from '../hooks/useDeleteScrap.ts'
 import { useSaveSectionProgress } from '../hooks/useSaveSectionProgress.ts'
+import { useSectionPageTimer } from '../hooks/useSectionPageTimer.ts'
+import {
+  contentTextDirection,
+  pickLocaleText,
+  toContentLanguage,
+} from '../data/contentLanguage.ts'
 
 interface VocabularyLessonPageProps {
+  language: string
   sectionId: number | null
   initialView?: VocabularyLessonView
   initialCardIndex?: number
+  /**
+   * annotation 팝업의 GO TO LESSON 으로 들어왔을 때 target.cardId.
+   * 해당 단어 카드부터 보여준다. 그 카드가 이 섹션에 없으면 무시한다.
+   */
+  initialCardId?: number | null
+  /** 수업 내부 한 단계 뒤로. 되돌아갈 단계가 없으면 수업 밖으로 나간다. */
   onBack: () => void
+  /** 수업을 완전히 종료하고 수업 목록으로 나간다. */
+  onExit: () => void
+  onOpenFlashcardPractice: () => void
   onOpenNextGrammar: (sectionId?: number | null) => void
+  /**
+   * annotation 팝업의 GO TO LESSON 으로 열린 화면인지 여부.
+   * target.mode 가 EXPLANATION_ONLY 면 하단 BACK/NEXT 를 비활성화한다.
+   */
+  explanationOnly?: boolean
 }
 
 type VocabularyLessonView = 'intro' | 'card' | 'table' | 'flashcards'
+type PersonalListPromptSource = 'card' | 'table'
+
+interface PersonalListPrompt {
+  wordId: number
+  source: PersonalListPromptSource
+}
 
 const swipeThreshold = 40
 const cardWidth = 278
@@ -44,27 +71,36 @@ const fallbackVocabularyItems = [
 ]
 
 function VocabularyLessonPage({
+  language,
   sectionId,
   initialView = 'intro',
   initialCardIndex = 0,
+  initialCardId = null,
   onBack,
+  onExit,
+  onOpenFlashcardPractice,
   onOpenNextGrammar,
+  explanationOnly = false,
 }: VocabularyLessonPageProps) {
+  const contentLanguage = toContentLanguage(language)
+  const translationDir = contentTextDirection(contentLanguage)
   const { data: cardsData, loading: cardsLoading } = useSectionCards(sectionId)
   const createScrapMutation = useCreateScrap()
   const deleteScrapMutation = useDeleteScrap()
   const saveProgress = useSaveSectionProgress()
 
   const [view, setView] = useState<VocabularyLessonView>(initialView)
-  const [currentCardIndex, setCurrentCardIndex] = useState(Math.max(0, initialCardIndex))
+  // null 이면 아직 사용자가 카드를 옮기지 않은 상태라, 아래에서 목적지/초기값으로 유도한다.
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null)
   const [flippedWordIds, setFlippedWordIds] = useState<number[]>([])
   const [optimisticAdded, setOptimisticAdded] = useState<number[]>([])
   const [optimisticRemoved, setOptimisticRemoved] = useState<number[]>([])
   const [optimisticScrapIds, setOptimisticScrapIds] = useState<Record<number, string>>({})
   const [pendingScrapWordIds, setPendingScrapWordIds] = useState<number[]>([])
-  const [personalListPromptWordId, setPersonalListPromptWordId] = useState<number | null>(null)
+  const [personalListPrompt, setPersonalListPrompt] = useState<PersonalListPrompt | null>(null)
   const [expandedTableWordIds, setExpandedTableWordIds] = useState<number[]>([])
-  const pointerStartXRef = useRef<number | null>(null)
+  const pointerStartRef = useRef<{ pointerId: number; clientX: number } | null>(null)
+  const shouldIgnoreCardClickRef = useRef(false)
 
   // Base scrap state derived directly from API data (no useEffect)
   const baseScrapedIds = useMemo(
@@ -100,13 +136,37 @@ function VocabularyLessonPage({
       return cards.map((card) => ({
         id: card.id,
         word: card.wordFront,
-        meaning: card.wordBack,
-        note: card.notes ?? '',
+        // 뜻/노트는 mother language 로케일을 우선 사용하고 없으면 기본값으로 폴백한다.
+        meaning: pickLocaleText(card.locales, contentLanguage, 'back') ?? card.wordBack,
+        note: pickLocaleText(card.locales, contentLanguage, 'notes') ?? card.notes ?? '',
         audioUrl: card.audioUrl,
       }))
     },
-    [cardsData],
+    [cardsData, contentLanguage],
   )
+
+  // GO TO LESSON 으로 들어왔으면 target.cardId 에 해당하는 카드부터 보여준다.
+  // 카드가 아직 로딩 중이거나 그 카드가 이 섹션에 없으면 초기 인덱스로 폴백한다.
+  const targetCardIndex = useMemo(() => {
+    if (initialCardId === null) return null
+    const index = vocabularyItems.findIndex((item) => item.id === initialCardId)
+    return index >= 0 ? index : null
+  }, [initialCardId, vocabularyItems])
+
+  const defaultCardIndex = targetCardIndex ?? Math.max(0, initialCardIndex)
+  const currentCardIndex = selectedCardIndex ?? defaultCardIndex
+
+  const setCurrentCardIndex = (next: number | ((current: number) => number)) => {
+    setSelectedCardIndex((current) =>
+      typeof next === 'function' ? next(current ?? defaultCardIndex) : next,
+    )
+  }
+
+  useSectionPageTimer({
+    sectionId,
+    pageNumber: currentCardIndex,
+    enabled: !cardsLoading && view === 'card' && vocabularyItems.length > 0,
+  })
 
   const currentCard = vocabularyItems[currentCardIndex]
   const carouselEntries = [
@@ -132,11 +192,14 @@ function VocabularyLessonPage({
     window.speechSynthesis.speak(utterance)
   }
 
+  // 하단 BACK 전용 핸들러: 수업 내부의 이전 단계로만 이동한다.
+  // 상단 화살표는 onExit으로 분리되어 항상 수업을 종료한다.
   const handleBackPress = () => {
     if (view === 'flashcards') {
       setView('card')
       return
     }
+
     onBack()
   }
 
@@ -212,16 +275,40 @@ function VocabularyLessonPage({
     )
   }
 
-  const handlePointerDown = (clientX: number) => {
-    pointerStartXRef.current = clientX
+  const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (!event.isPrimary) return
+
+    pointerStartRef.current = { pointerId: event.pointerId, clientX: event.clientX }
+    event.currentTarget.setPointerCapture(event.pointerId)
   }
 
-  const handlePointerUp = (clientX: number) => {
-    if (pointerStartXRef.current === null) return
-    const deltaX = clientX - pointerStartXRef.current
-    pointerStartXRef.current = null
+  const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
+    const pointerStart = pointerStartRef.current
+    if (!pointerStart || pointerStart.pointerId !== event.pointerId) return
+
+    const deltaX = event.clientX - pointerStart.clientX
+    pointerStartRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    if (Math.abs(deltaX) < swipeThreshold) return
+
+    shouldIgnoreCardClickRef.current = true
+    window.setTimeout(() => {
+      shouldIgnoreCardClickRef.current = false
+    }, 0)
     if (deltaX <= -swipeThreshold) moveCard('next')
     if (deltaX >= swipeThreshold) moveCard('prev')
+  }
+
+  const handleCurrentCardClick = (wordId: number) => {
+    if (shouldIgnoreCardClickRef.current) {
+      shouldIgnoreCardClickRef.current = false
+      return
+    }
+
+    toggleFlip(wordId)
   }
 
   const handleOpenNextGrammar = async () => {
@@ -238,8 +325,7 @@ function VocabularyLessonPage({
         payload: {
           currentPage: Math.max(1, vocabularyItems.length),
           stayTimeSeconds: 0,
-          forceComplete: true,
-          difficulty: 'NORMAL',
+          isCompleted: true,
         },
       })
       const nextGrammarSectionId =
@@ -258,11 +344,19 @@ function VocabularyLessonPage({
         : 'This lesson’s words'
 
   const promptWord =
-    personalListPromptWordId === null
+    personalListPrompt === null
       ? null
-      : vocabularyItems.find((item) => item.id === personalListPromptWordId) ?? null
+      : vocabularyItems.find((item) => item.id === personalListPrompt.wordId) ?? null
   const promptWordSaved = promptWord ? personalListIds.includes(promptWord.id) : false
   const isPromptWordPending = promptWord ? pendingScrapWordIds.includes(promptWord.id) : false
+  const promptCopy =
+    personalListPrompt?.source === 'card'
+      ? promptWordSaved
+        ? 'Do you want to remove this word from your personal list?'
+        : 'Do you want to add this word to your personal list?'
+      : promptWordSaved
+        ? 'Do you want to remove it from your personal list?'
+        : 'Do you want to add it to your personal list?'
 
   const renderPersonalListIcon = (isSaved: boolean) => {
     if (isSaved) {
@@ -334,8 +428,8 @@ function VocabularyLessonPage({
           <button
             type="button"
             className="vocabulary-lesson-back"
-            onClick={handleBackPress}
-            aria-label="Go back"
+            onClick={onExit}
+            aria-label="Exit lesson"
           >
             <svg
               className="vocabulary-lesson-back-icon"
@@ -384,14 +478,26 @@ function VocabularyLessonPage({
           </section>
         ) : view === 'flashcards' ? (
           <section className="vocabulary-lesson-flashcards">
+            {/* 기존 flashcards UI 시작 */}
             <article className="vocabulary-lesson-flashcards-card">
               <p className="vocabulary-lesson-flashcards-label">Flashcards game</p>
               <h2 className="vocabulary-lesson-flashcards-word">{currentCard?.word ?? ''}</h2>
-              <p className="vocabulary-lesson-flashcards-meaning">{currentCard?.meaning ?? ''}</p>
+              <p className="vocabulary-lesson-flashcards-meaning" dir={translationDir}>
+                {currentCard?.meaning ?? ''}
+              </p>
             </article>
             <p className="vocabulary-lesson-flashcards-copy">
               Tap cards and quiz yourself with the words from this lesson.
             </p>
+            <button
+              type="button"
+              className="vocabulary-lesson-flashcards-back-button"
+              disabled={explanationOnly}
+              onClick={handleBackPress}
+            >
+              BACK
+            </button>
+            {/* 기존 flashcards UI 끝 */}
           </section>
         ) : cardsLoading ? (
           <section className="vocabulary-lesson-study">
@@ -414,10 +520,10 @@ function VocabularyLessonPage({
                 <section
                   className="vocabulary-lesson-carousel"
                   aria-label="Vocabulary cards"
-                  onPointerDown={(event) => handlePointerDown(event.clientX)}
-                  onPointerUp={(event) => handlePointerUp(event.clientX)}
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
                   onPointerCancel={() => {
-                    pointerStartXRef.current = null
+                    pointerStartRef.current = null
                   }}
                 >
                   <div
@@ -448,7 +554,7 @@ function VocabularyLessonPage({
                               ? 'vocabulary-lesson-card-shell-current'
                               : 'vocabulary-lesson-card-shell-side'
                           }`}
-                          onClick={isCurrent ? () => toggleFlip(entry.item.id) : undefined}
+                          onClick={isCurrent ? () => handleCurrentCardClick(entry.item.id) : undefined}
                         >
                           {isCurrent ? (
                             <>
@@ -511,39 +617,44 @@ function VocabularyLessonPage({
 
                                   <div className="vocabulary-lesson-flip-face vocabulary-lesson-flip-face-back">
                                     <div className="vocabulary-lesson-main-card-center">
-                                      <p className="vocabulary-lesson-main-card-back-copy">
+                                      <p
+                                        className="vocabulary-lesson-main-card-back-copy"
+                                        dir={translationDir}
+                                      >
                                         {entry.item.meaning}
                                       </p>
-                                      <p className="vocabulary-lesson-main-card-back-note">
+                                      <p
+                                        className="vocabulary-lesson-main-card-back-note"
+                                        dir={translationDir}
+                                      >
                                         {entry.item.note}
                                       </p>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                              {isFlipped ? (
-                                <button
-                                  type="button"
-                                  className="vocabulary-lesson-main-card-note-button"
-                                  onPointerDown={(event) => {
-                                    event.stopPropagation()
-                                  }}
-                                  onPointerUp={(event) => {
-                                    event.stopPropagation()
-                                  }}
-                                  onClick={(event) => {
-                                    event.stopPropagation()
-                                    setPersonalListPromptWordId(entry.item.id)
-                                  }}
-                                  aria-label={
-                                    isSaved
-                                      ? `Remove ${entry.item.word} from personal list`
-                                      : `Add ${entry.item.word} to personal list`
-                                  }
-                                >
-                                  {renderPersonalListIcon(isSaved)}
-                                </button>
-                              ) : null}
+                              <button
+                                type="button"
+                                className="vocabulary-lesson-main-card-note-button"
+                                onPointerDown={(event) => {
+                                  event.stopPropagation()
+                                }}
+                                onPointerUp={(event) => {
+                                  event.stopPropagation()
+                                }}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  setPersonalListPrompt({ wordId: entry.item.id, source: 'card' })
+                                }}
+                                aria-label={
+                                  isSaved
+                                    ? `Remove ${entry.item.word} from personal list`
+                                    : `Add ${entry.item.word} to personal list`
+                                }
+                                title={isSaved ? 'Remove from personal list' : 'Add to personal list'}
+                              >
+                                {renderPersonalListIcon(isSaved)}
+                              </button>
                             </>
                           ) : null}
                         </article>
@@ -606,7 +717,7 @@ function VocabularyLessonPage({
                             }`}
                             onClick={(event) => {
                               event.stopPropagation()
-                              setPersonalListPromptWordId(item.id)
+                              setPersonalListPrompt({ wordId: item.id, source: 'table' })
                             }}
                             aria-label={
                               isSaved
@@ -619,7 +730,7 @@ function VocabularyLessonPage({
                           <span className="vocabulary-lesson-table-word">
                             {item.word}
                           </span>
-                          <span className="vocabulary-lesson-table-meaning">
+                          <span className="vocabulary-lesson-table-meaning" dir={translationDir}>
                             {item.meaning}
                           </span>
                           <svg
@@ -646,7 +757,7 @@ function VocabularyLessonPage({
                           <div className="vocabulary-lesson-table-notes">
                             <p className="vocabulary-lesson-table-note-line">
                               <span className="vocabulary-lesson-table-note-label">Notes</span>
-                              <span>{item.note || item.meaning}</span>
+                              <span dir={translationDir}>{item.note || item.meaning}</span>
                             </p>
                             <p className="vocabulary-lesson-table-example">
                               한국어 예문
@@ -665,7 +776,7 @@ function VocabularyLessonPage({
               <button
                 type="button"
                 className="vocabulary-lesson-flashcard-button"
-                onClick={() => setView('flashcards')}
+                onClick={onOpenFlashcardPractice}
               >
                 to flashcard practice
               </button>
@@ -675,7 +786,7 @@ function VocabularyLessonPage({
               <button
                 type="button"
                 className="vocabulary-lesson-next-button"
-                disabled={saveProgress.isPending}
+                disabled={saveProgress.isPending || explanationOnly}
                 onClick={() => void handleOpenNextGrammar()}
               >
                 NEXT
@@ -710,15 +821,13 @@ function VocabularyLessonPage({
             }
           >
             <p className="vocabulary-lesson-modal-copy">
-              {promptWordSaved ? 'Do you want to remove it' : 'Do you want to add it'}
-              <br />
-              {promptWordSaved ? 'from your personal list?' : 'to your personal list?'}
+              {promptCopy}
             </p>
             <div className="vocabulary-lesson-modal-actions">
               <button
                 type="button"
                 className="vocabulary-lesson-modal-button vocabulary-lesson-modal-button-secondary"
-                onClick={() => setPersonalListPromptWordId(null)}
+                onClick={() => setPersonalListPrompt(null)}
               >
                 NO
               </button>
@@ -729,7 +838,7 @@ function VocabularyLessonPage({
                 onClick={() => {
                   if (isPromptWordPending) return
                   void handleTogglePersonalList(promptWord.id)
-                  setPersonalListPromptWordId(null)
+                  setPersonalListPrompt(null)
                 }}
               >
                 YES

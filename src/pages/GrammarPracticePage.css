@@ -603,6 +603,63 @@
   line-height: 1.2;
 }
 
+/* 자료 연습 문항(contentText.practices)의 고정 질문 + 단계 내 문항 진행 표시 */
+.grammar-practice-practice-intro {
+  width: min(350px, 100%);
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.grammar-practice-practice-image {
+  flex: 0 0 auto;
+  width: 100px;
+  height: 72px;
+  border: 1px solid var(--dojeon-color-gray-300);
+  border-radius: 8px;
+  background: var(--dojeon-color-gray-200);
+}
+
+.grammar-practice-practice-intro-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grammar-practice-practice-question {
+  margin: 0;
+  color: var(--dojeon-color-gray-900);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.grammar-practice-practice-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.grammar-practice-practice-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dojeon-color-gray-300);
+}
+
+.grammar-practice-practice-dot-active {
+  background: var(--dojeon-color-gray-900);
+}
+
+.grammar-practice-content-fill .grammar-practice-practice-intro {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.grammar-practice-content-fill .grammar-practice-practice-question {
+  font-size: 12px;
+}
+
 .grammar-practice-question-card {
   width: min(350px, 100%);
   height: 210px;
@@ -985,8 +1042,18 @@
   padding: 24px 18px;
 }
 
+/* 빈칸 채우기는 문장과 입력칸을 하나의 인라인 흐름으로 묶어, 문장이 길어져도 입력칸이 글줄 안에서 같이 흐르게 한다. */
+.grammar-practice-content-fill .grammar-practice-question-stack {
+  display: block;
+  width: 100%;
+}
+
 .grammar-practice-content-fill .grammar-practice-question-row {
-  gap: 8px;
+  display: block;
+  gap: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 34px;
 }
 
 .grammar-practice-content-fill .grammar-practice-fill-prompt-lines {
@@ -999,14 +1066,27 @@
 }
 
 .grammar-practice-content-fill .grammar-practice-fill-sentence-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   row-gap: 10px;
 }
 
 .grammar-practice-content-fill .grammar-practice-question-text,
 .grammar-practice-content-fill .grammar-practice-question-dot {
+  display: inline;
   font-size: 12px;
   font-weight: 600;
+  line-height: inherit;
+}
+
+/* inline-flex 로 두어야 입력칸이 줄 상자 기준선에 밀려 글줄보다 아래로 내려가지 않는다. */
+.grammar-practice-content-fill .grammar-practice-answer-column {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 6px;
 }
 
 .grammar-practice-content-fill .grammar-practice-answer-column,
@@ -2181,13 +2261,15 @@
 
 .grammar-practice-listening-screen {
   width: calc(100% + 48px);
-  min-height: calc(100vh - 149px);
+  height: calc(100dvh - 83px); /* header 64px + 화면 상단 간격 19px을 제외하고 실제 화면 하단까지 사용. */
+  min-height: 0;
   margin-top: 19px;
   margin-left: -24px;
   margin-right: -24px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .grammar-practice-listening-toggle-row {
@@ -2240,125 +2322,18 @@
   flex: 0 0 auto;
 }
 
-.grammar-practice-listening-player {
+.grammar-practice-listening-audio-icon {
   width: 350px;
-  height: 38px;
-  margin-top: 12px;
-  border-radius: 4px;
-  background: var(--dojeon-color-gray-50);
-  box-sizing: border-box;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-}
-
-.grammar-practice-listening-play {
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--dojeon-color-gray-900);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.grammar-practice-listening-time {
-  margin-left: 13px;
-  color: var(--dojeon-color-gray-900);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-.grammar-practice-listening-time:last-child {
-  margin-left: 12px;
-}
-
-.grammar-practice-listening-progress {
-  width: 100%;
-  flex: 1 1 auto;
-  height: 4px;
-  margin-left: 12px;
-  border-radius: 999px;
-  background: var(--dojeon-color-gray-300);
-  overflow: visible;
-  position: relative;
-  cursor: grab;
-  touch-action: none;
-}
-
-.grammar-practice-listening-progress-fill {
-  display: block;
-  width: 58%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--dojeon-color-gray-600);
-  position: relative;
-}
-
-.grammar-practice-listening-progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: -4px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--dojeon-color-gray-700);
-  transform: translateY(-50%);
-  z-index: 1;
-}
-
-.grammar-practice-listening-progress.is-scrubbing {
-  cursor: grabbing;
-}
-
-.grammar-practice-listening-show-text-wrap {
-  width: 350px;
-  min-height: 184px;
   margin-top: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.grammar-practice-listening-screen-script-visible .grammar-practice-listening-show-text-wrap {
-  min-height: 0;
-  align-items: flex-start;
-}
-
-.grammar-practice-listening-show-text-button {
-  width: 154px;
-  height: 48px;
-  border: 1px solid var(--dojeon-color-primary-action);
-  border-radius: 10px;
-  background: var(--dojeon-color-surface);
   color: var(--dojeon-color-primary-action);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.2;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.grammar-practice-listening-show-text-button-active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.grammar-practice-listening-show-text-icon {
-  flex: 0 0 auto;
 }
 
 .grammar-practice-listening-script-card {
   width: 350px;
+  margin-top: 12px;
   border-radius: 10px;
   background: var(--dojeon-color-primary-100);
   padding: 18px 18px 17px;
@@ -2371,14 +2346,14 @@
 .grammar-practice-listening-script-line {
   margin: 0;
   color: var(--dojeon-color-gray-900);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.25;
   text-align: left;
 }
 
 .grammar-practice-listening-script-speaker {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -2386,26 +2361,59 @@
   padding-left: 34px;
 }
 
+.grammar-practice-listening-scroll-area {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 110px); /* 하단 34px + Next 54px + 진행점 아래 간격 22px */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+
+.grammar-practice-listening-scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
 .grammar-practice-listening-question-viewport {
   width: 100%;
-  margin-top: 0;
+  margin-top: auto;
   overflow: hidden;
+  flex: 0 0 auto;
 }
 
 .grammar-practice-listening-screen-script-visible .grammar-practice-listening-question-viewport {
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 18px;
+  box-sizing: border-box;
 }
 
 .grammar-practice-listening-question-track {
   display: flex;
   gap: 8px;
-  transform: translateX(20px);
+  transition: transform 220ms ease;
+  touch-action: pan-y;
+}
+
+.grammar-practice-listening-question-track.is-dragging {
+  transition: none;
+}
+
+.grammar-practice-listening-question-slide {
+  position: relative;
+  width: 350px;
+  flex: 0 0 350px;
+  padding-top: 48px;
+  box-sizing: border-box;
 }
 
 .grammar-practice-listening-question-card {
-  width: 350px;
+  width: 100%;
   min-height: 134px;
-  flex: 0 0 350px;
   border: 1px solid var(--dojeon-color-primary-border);
   border-radius: 10px;
   background: var(--dojeon-color-vocabulary-row);
@@ -2419,7 +2427,7 @@
 .grammar-practice-listening-question-title {
   margin: 0;
   color: var(--dojeon-color-primary-action);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -2427,7 +2435,7 @@
 .grammar-practice-listening-question-prompt {
   margin: 6px 0 0;
   color: var(--dojeon-color-gray-900);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.3;
 }
@@ -2450,7 +2458,7 @@
   background: var(--dojeon-color-surface);
   color: var(--dojeon-color-gray-900);
   box-sizing: border-box;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.2;
   cursor: pointer;
@@ -2463,13 +2471,22 @@
   font-weight: 600;
 }
 
+.grammar-practice-listening-option-button-correct {
+  border-color: var(--dojeon-color-success);
+}
+
+.grammar-practice-listening-option-button-wrong {
+  border-color: var(--dojeon-color-error);
+}
+
 .grammar-practice-listening-question-card-peek {
   justify-content: flex-start;
   padding-top: 16px;
 }
 
 .grammar-practice-listening-dots {
-  margin-top: 10px;
+  margin-top: 12px;
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -2486,11 +2503,24 @@
   background: var(--dojeon-color-gray-900);
 }
 
+.grammar-practice-listening-action-row {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 34px);
+  transform: translateX(-50%);
+  width: 350px;
+  max-width: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 4;
+}
+
 .grammar-practice-listening-next-button {
   width: 350px;
   max-width: 100%;
   height: 54px;
-  margin-top: auto;
+  margin: 0;
   border: 0;
   border-radius: 10px;
   background: var(--dojeon-color-gray-200);
@@ -2502,123 +2532,25 @@
   cursor: not-allowed;
 }
 
+.grammar-practice-listening-save-error {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 100%;
+  margin: 0;
+}
+
 .grammar-practice-listening-next-button-active {
   background: var(--dojeon-color-primary-action);
   color: var(--dojeon-color-surface);
   cursor: pointer;
 }
 
-.grammar-practice-next-grammar-screen,
-.grammar-practice-next-grammar-rules-screen {
+.grammar-practice-next-grammar-screen {
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - 88px);
   box-sizing: border-box;
-}
-
-.grammar-practice-next-grammar-rules-screen {
-  padding-top: 24px;
-}
-
-.grammar-practice-next-grammar-rules-intro {
-  margin: 0;
-  color: var(--dojeon-color-gray-700);
-  font-size: 18px;
-  font-weight: 700;
-  font-stretch: semi-condensed;
-  line-height: 1.2;
-  text-align: right;
-}
-
-.grammar-practice-next-grammar-rules-points {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.grammar-practice-next-grammar-rules-point-row {
-  position: relative;
-  padding-right: 18px;
-}
-
-.grammar-practice-next-grammar-rules-point {
-  margin: 0;
-  color: var(--dojeon-color-gray-700);
-  font-size: 16px;
-  font-weight: 500;
-  font-stretch: semi-condensed;
-  letter-spacing: 0;
-  line-height: 1.35;
-  direction: rtl;
-  unicode-bidi: plaintext;
-  word-break: keep-all;
-  overflow-wrap: normal;
-  text-align: right;
-}
-
-.grammar-practice-next-grammar-rules-point-row .grammar-practice-next-grammar-rules-bullet {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 10px;
-  display: block;
-  color: var(--dojeon-color-gray-700);
-  font-size: 20px;
-  font-weight: 500;
-  line-height: 1.1;
-  text-align: center;
-}
-
-.grammar-practice-next-grammar-rules-point-row .grammar-practice-next-grammar-rules-bullet-asterisk {
-  font-size: 16px;
-  line-height: 1.35;
-}
-
-.grammar-practice-next-grammar-rules-heading {
-  margin: 24px 0 0;
-  color: var(--dojeon-color-gray-900);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: left;
-}
-
-.grammar-practice-next-grammar-rules-english {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.grammar-practice-next-grammar-rules-english-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.grammar-practice-next-grammar-rules-english-row .grammar-practice-next-grammar-rules-bullet {
-  flex: 0 0 10px;
-  color: var(--dojeon-color-gray-700);
-  font-size: 20px;
-  font-weight: 500;
-  line-height: 1.1;
-  text-align: center;
-}
-
-.grammar-practice-next-grammar-rules-english-row-no-bullet {
-  padding-left: 18px;
-}
-
-.grammar-practice-next-grammar-rules-english-line {
-  margin: 0;
-  flex: 1;
-  color: var(--dojeon-color-gray-700);
-  font-size: 16px;
-  font-weight: 500;
-  font-stretch: semi-condensed;
-  line-height: 1.35;
-  text-align: left;
 }
 
 .grammar-practice-next-grammar-screen .grammar-practice-reading-toggle-row {
@@ -2661,6 +2593,37 @@
   width: 100%;
   grid-template-columns: minmax(96px, 0.7fr) minmax(0, 1.3fr);
   gap: 2px;
+}
+
+/* 서버 contentText.table 을 그대로 그리는 표. 열 수는 headers 개수에 따라 달라진다. */
+.grammar-practice-next-grammar-table {
+  margin-top: 16px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.grammar-practice-next-grammar-table th,
+.grammar-practice-next-grammar-table td {
+  min-height: 30px;
+  padding: 7px 8px;
+  background: var(--dojeon-color-primary-50);
+  color: var(--dojeon-color-gray-900);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+  vertical-align: middle;
+  word-break: keep-all;
+}
+
+.grammar-practice-next-grammar-table th {
+  background: var(--dojeon-color-primary-container);
+  font-weight: 600;
+}
+
+.grammar-practice-next-grammar-table-line {
+  display: block;
 }
 
 .grammar-practice-next-grammar-grid-box {
@@ -3028,19 +2991,145 @@
   color: var(--dojeon-color-gray-900);
 }
 
-.grammar-practice-next-grammar-rules-character-wrap {
-  flex: 1 1 auto;
-  min-height: 176px;
-  padding: 18px 0 12px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  box-sizing: border-box;
+/* EXPLANATION_ONLY 로 이동해 온 화면에서는 하단 BACK/NEXT 를 쓸 수 없다. */
+.grammar-practice-next-grammar-action-button:disabled {
+  background: var(--dojeon-color-gray-200);
+  color: var(--dojeon-color-gray-500);
+  cursor: not-allowed;
 }
 
-.grammar-practice-next-grammar-rules-character {
-  width: 118px;
-  height: auto;
-  display: block;
-  object-fit: contain;
+/* annotation 팝업: 같은 구간에 겹친 annotation 을 제목 탭으로 골라 본다. */
+.grammar-practice-annotation-note-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.grammar-practice-annotation-note-tab {
+  border: 1px solid var(--dojeon-color-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: var(--dojeon-color-surface);
+  color: var(--dojeon-color-gray-600);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.grammar-practice-annotation-note-tab.is-selected {
+  border-color: var(--dojeon-color-primary-action);
+  background: var(--dojeon-color-primary-container);
+  color: var(--dojeon-color-gray-900);
+}
+
+/* 목적지가 없거나 목적지 조회에 실패해서 GO TO LESSON 을 띄울 수 없을 때의 안내 문구. */
+.grammar-practice-annotation-note-empty {
+  margin: 24px 0 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--dojeon-color-gray-100, #f3f4f6);
+  color: var(--dojeon-color-gray-600);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.grammar-practice-next-grammar-note-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+
+/* 자료/문항을 불러오는 중이거나 보여 줄 콘텐츠가 없을 때의 안내 문구. */
+.grammar-practice-status {
+  margin: 16px 24px 0;
+  color: var(--dojeon-color-gray-600);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 연습 문제가 없거나 불러오지 못했을 때의 빈 상태. 데모 문항 대신 이 화면을 보여 준다. */
+.grammar-practice-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 320px;
+  padding: 40px 24px;
+}
+
+.grammar-practice-empty-state-text {
+  margin: 0;
+  color: var(--dojeon-color-gray-700);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.grammar-practice-empty-state-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.grammar-practice-empty-state-button {
+  padding: 12px 20px;
+  border: 1px solid var(--dojeon-color-primary-border);
+  border-radius: 10px;
+  background: var(--dojeon-color-surface);
+  color: var(--dojeon-color-primary-700);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* 카드 뒤집기 연습(contentText.practices 의 kind: cards). */
+.grammar-practice-cards-screen {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 24px 24px;
+}
+
+.grammar-practice-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grammar-practice-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 20px 16px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--dojeon-color-gray-200);
+  color: var(--dojeon-color-gray-900);
+  text-align: center;
+  cursor: pointer;
+}
+
+.grammar-practice-card-item.is-revealed {
+  border-color: var(--dojeon-color-primary-action);
+  background: var(--dojeon-color-primary-container);
+}
+
+.grammar-practice-card-front {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.grammar-practice-card-back {
+  color: var(--dojeon-color-gray-700);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
 }

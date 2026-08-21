@@ -1,17 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './VocabularyPage.css'
 import { useVocabScraps } from '../hooks/useVocabScraps.ts'
 import type { VocabScrapGroup, VocabScrapItem } from '../types/scraps.types.ts'
+import {
+  contentTextDirection,
+  pickLocaleText,
+  toContentLanguage,
+  type ContentLanguage,
+} from '../data/contentLanguage.ts'
 
 interface VocabularyPageProps {
+  language: string
   onBack: () => void
 }
 
-const getTranslation = (item: VocabScrapItem) =>
-  item.card?.locales?.en?.back ?? item.card?.wordBack ?? ''
+// 대시보드 preview(백엔드에서 5개로 잘라 보냄)와 개수를 맞춰 notebook → see more 이동 시 목록이 줄어 보이지 않게 한다.
+const COURSE_PREVIEW_WORD_COUNT = 5
 
-const getNotes = (item: VocabScrapItem) =>
-  item.card?.locales?.en?.notes ?? item.card?.notes ?? 'No notes yet.'
+const getWordFront = (item: VocabScrapItem) => item.card?.wordFront ?? 'Unknown word'
+
+const getTranslation = (item: VocabScrapItem, language: ContentLanguage) =>
+  pickLocaleText(item.card?.locales, language, 'back') ??
+  item.card?.wordBack ??
+  'No translation yet.'
+
+const getNotes = (item: VocabScrapItem, language: ContentLanguage) =>
+  pickLocaleText(item.card?.locales, language, 'notes') ?? item.card?.notes ?? 'No notes yet.'
 
 const getExample = (item: VocabScrapItem) => {
   const word = item.card?.wordFront ?? ''
@@ -145,14 +159,25 @@ const previewVocabGroups: VocabScrapGroup[] = [
   },
 ]
 
-function VocabularyPage({ onBack }: VocabularyPageProps) {
+function VocabularyPage({ language, onBack }: VocabularyPageProps) {
+  const contentLanguage = toContentLanguage(language)
+  const translationDir = contentTextDirection(contentLanguage)
   const [isRecentSort, setIsRecentSort] = useState(true)
-  const [selectedGroup, setSelectedGroup] = useState<VocabScrapGroup | null>(null)
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null)
   const [expandedScrapId, setExpandedScrapId] = useState<string | null>(null)
   const [selectedWord, setSelectedWord] = useState<VocabScrapItem | null>(null)
   const [flashcardScrapIds, setFlashcardScrapIds] = useState<Set<string>>(() => new Set())
-  const { groups, loading, error, refetch } = useVocabScraps()
+  const { groups, loading, loadingMore, hasMore, error, fetchNextPage, refetch } = useVocabScraps()
   const visibleGroups = import.meta.env.DEV && groups.length === 0 ? previewVocabGroups : groups
+  // 코스별 그룹은 모든 페이지가 도착해야 완성되므로 남은 페이지를 이어서 받아온다.
+  useEffect(() => {
+    if (!hasMore || loadingMore) return
+    fetchNextPage()
+  }, [hasMore, loadingMore, fetchNextPage])
+
+  // 그룹 객체를 저장하지 않고 courseId로 다시 찾는다. 뒤이어 도착한 페이지의 단어까지 반영되도록.
+  const selectedGroup =
+    visibleGroups.find((group) => group.courseId === selectedCourseId) ?? null
   const selectedFlashcardItems = selectedGroup
     ? selectedGroup.items.filter((item) => flashcardScrapIds.has(item.scrapId))
     : []
@@ -197,7 +222,7 @@ function VocabularyPage({ onBack }: VocabularyPageProps) {
     }
 
     if (selectedGroup) {
-      setSelectedGroup(null)
+      setSelectedCourseId(null)
       setExpandedScrapId(null)
       return
     }
@@ -269,11 +294,15 @@ function VocabularyPage({ onBack }: VocabularyPageProps) {
           <WordDetail
             item={selectedWord}
             index={selectedWordDisplayIndex}
+            contentLanguage={contentLanguage}
+            translationDir={translationDir}
             onRemove={() => removeFlashcardItem(selectedWord.scrapId)}
           />
         ) : selectedGroup ? (
           <WordList
             group={selectedGroup}
+            contentLanguage={contentLanguage}
+            translationDir={translationDir}
             expandedScrapId={expandedScrapId}
             flashcardScrapIds={flashcardScrapIds}
             onToggle={(scrapId) => {
@@ -305,7 +334,13 @@ function VocabularyPage({ onBack }: VocabularyPageProps) {
             ) : null}
           </div>
         ) : (
-          <CourseList groups={visibleGroups} onOpenGroup={setSelectedGroup} />
+          <>
+            <CourseList
+              groups={visibleGroups}
+              onOpenGroup={(group) => setSelectedCourseId(group.courseId)}
+            />
+            {loadingMore ? <p className="vocabulary-loading">Loading more...</p> : null}
+          </>
         )}
       </section>
     </main>
@@ -328,9 +363,9 @@ function CourseList({
             <span className="vocabulary-lesson-tag">{getLessonTag(group)}</span>
           </div>
           <div className="vocabulary-card-items">
-            {group.items.slice(0, 4).map((item, index) => (
+            {group.items.slice(0, COURSE_PREVIEW_WORD_COUNT).map((item, index) => (
               <p key={item.scrapId}>
-                {index + 1}. {item.card?.wordFront ?? ''}
+                {index + 1}. {getWordFront(item)}
               </p>
             ))}
           </div>
@@ -349,6 +384,8 @@ function CourseList({
 
 function WordList({
   group,
+  contentLanguage,
+  translationDir,
   expandedScrapId,
   flashcardScrapIds,
   onToggle,
@@ -357,6 +394,8 @@ function WordList({
   onOpenFlashcardPractice,
 }: {
   group: VocabScrapGroup
+  contentLanguage: ContentLanguage
+  translationDir: 'rtl' | 'ltr'
   expandedScrapId: string | null
   flashcardScrapIds: Set<string>
   onToggle: (scrapId: string) => void
@@ -414,8 +453,8 @@ function WordList({
                       />
                     </svg>
                   </button>
-                  <span>{item.card?.wordFront ?? ''}</span>
-                  <span>{getTranslation(item)}</span>
+                  <span>{getWordFront(item)}</span>
+                  <span dir={translationDir}>{getTranslation(item, contentLanguage)}</span>
                   <button
                     type="button"
                     className="vocabulary-row-chevron"
@@ -438,7 +477,7 @@ function WordList({
                   <div className="vocabulary-notes-panel">
                     <div className="vocabulary-note-line">
                       <span className="vocabulary-note-tag">Notes</span>
-                      <span>{getNotes(item)}</span>
+                      <span dir={translationDir}>{getNotes(item, contentLanguage)}</span>
                     </div>
                     <div className="vocabulary-example-line">
                       <span>{getExample(item)}</span>
@@ -476,15 +515,19 @@ function WordList({
 function WordDetail({
   item,
   index,
+  contentLanguage,
+  translationDir,
   onRemove,
 }: {
   item: VocabScrapItem
   index: number
+  contentLanguage: ContentLanguage
+  translationDir: 'rtl' | 'ltr'
   onRemove: () => void
 }) {
-  const word = item.card?.wordFront ?? ''
-  const translation = getTranslation(item)
-  const notes = getNotes(item)
+  const word = getWordFront(item)
+  const translation = getTranslation(item, contentLanguage)
+  const notes = getNotes(item, contentLanguage)
   const example = getExample(item)
 
   return (
@@ -508,7 +551,9 @@ function WordDetail({
             </svg>
           </button>
         </div>
-        <p className="vocabulary-detail-translation">{index}. {translation}</p>
+        <p className="vocabulary-detail-translation" dir={translationDir}>
+          {index}. {translation}
+        </p>
         <div className="vocabulary-detail-pronunciation">
           <span>Pronunciation</span>
           <button type="button" className="vocabulary-audio-button" aria-label="Play pronunciation">
@@ -518,10 +563,12 @@ function WordDetail({
       </article>
 
       <article className="vocabulary-detail-notes">
-        <p className="vocabulary-detail-numbered">{index}. {translation}</p>
+        <p className="vocabulary-detail-numbered" dir={translationDir}>
+          {index}. {translation}
+        </p>
         <div className="vocabulary-note-line">
           <span className="vocabulary-note-tag">Notes</span>
-          <span>{notes}</span>
+          <span dir={translationDir}>{notes}</span>
         </div>
         <div className="vocabulary-example-stack">
           <div className="vocabulary-example-line">

@@ -5,6 +5,8 @@ export interface SubscriptionPlan {
   subText: string | null
   hasTrial: boolean
   billingCycleMonths: number
+  priceIls?: number | null
+  priceUsd?: number | null
   benefits: string[]
 }
 

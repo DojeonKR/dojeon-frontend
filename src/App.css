@@ -17,10 +17,11 @@
   margin: 0 auto;
   min-height: 100svh;
   display: block;
-  width: min(414px, 100%);
+  width: min(390px, 100%);
   border: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  background: var(--dojeon-color-background);
 }
 
 .app-root {

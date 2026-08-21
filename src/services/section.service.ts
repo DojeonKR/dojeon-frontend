@@ -1,13 +1,24 @@
 import type {
+    MaterialContentText,
+    SectionMaterial,
     SectionMaterialData,
+    SectionCard,
     SectionCardData,
+    SectionQuestion,
     SectionQuestionData,
     SectionCheckAnswerRequest,
     SectionCheckAnswerData,
     SaveProgressRequest,
     SaveProgressData,
 } from '../types/section,types.ts'
-import { getAuthToken } from './session.ts'
+import type {
+    AnnotationConcept,
+    AnnotationTarget,
+    AnnotationUnit,
+    SectionAnnotation,
+    SectionAnnotationsData,
+} from '../types/annotation.types.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -54,7 +65,7 @@ async function fetchSectionResponse<T>(
 ): Promise<T | null> {
     let res: Response
     try {
-        res = await fetch(input, init)
+        res = await authenticatedFetch(input, init)
     } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') throw error
         throw new SectionApiError(fallbackMessage)
@@ -116,11 +127,54 @@ async function fetchSectionResponse<T>(
     return body as T
 }
 
+// 섹션 응답들은 data 가 배열로 오기도 하고 { materials } / { cards } / { questions } 로 감싸 오기도 한다.
+function toRawList(data: unknown, wrapperKey: string): Record<string, unknown>[] {
+    if (Array.isArray(data)) return data as Record<string, unknown>[]
+    if (data && typeof data === 'object') {
+        const wrapped = (data as Record<string, unknown>)[wrapperKey]
+        if (Array.isArray(wrapped)) return wrapped as Record<string, unknown>[]
+    }
+    return []
+}
+
+function toId(...candidates: unknown[]): number {
+    for (const candidate of candidates) {
+        if (typeof candidate === 'number') return candidate
+        if (typeof candidate === 'string' && candidate.trim().length > 0) return Number(candidate)
+    }
+    return 0
+}
+
+function normalizeMaterial(raw: Record<string, unknown>, index: number): SectionMaterial {
+    const contentText = (raw.contentText ?? {}) as MaterialContentText
+    return {
+        id: toId(raw.materialId, raw.id),
+        type: String(raw.type ?? ''),
+        sequence: typeof raw.sequence === 'number' ? raw.sequence : index + 1,
+        isExtra: raw.isExtra === true,
+        contentText,
+    }
+}
+
+function normalizeCard(raw: Record<string, unknown>, index: number): SectionCard {
+    return {
+        id: toId(raw.cardId, raw.id),
+        wordFront: String(raw.wordFront ?? ''),
+        wordBack: String(raw.wordBack ?? ''),
+        notes: typeof raw.notes === 'string' ? raw.notes : undefined,
+        locales: (raw.locales ?? null) as SectionCard['locales'],
+        audioUrl: typeof raw.audioUrl === 'string' ? raw.audioUrl : null,
+        sequence: typeof raw.sequence === 'number' ? raw.sequence : index + 1,
+        isScraped: raw.isScraped === true,
+        scrapId: typeof raw.scrapId === 'string' ? raw.scrapId : null,
+    }
+}
+
 export async function fetchSectionMaterials(
     sectionId: number,
     signal?: AbortSignal,
 ): Promise<SectionMaterialData | null> {
-    return fetchSectionResponse<SectionMaterialData>(
+    const data = await fetchSectionResponse<unknown>(
         `${API_BASE_URL}/section/${sectionId}/material`,
         {
             method: 'GET',
@@ -129,13 +183,20 @@ export async function fetchSectionMaterials(
         },
         'Failed to fetch materials',
     )
+
+    if (data === null) return null
+
+    return {
+        sectionId,
+        materials: toRawList(data, 'materials').map(normalizeMaterial),
+    }
 }
 
 export async function fetchSectionCards(
     sectionId: number,
     signal?: AbortSignal,
 ): Promise<SectionCardData | null> {
-    return fetchSectionResponse<SectionCardData>(
+    const data = await fetchSectionResponse<unknown>(
         `${API_BASE_URL}/section/${sectionId}/card`,
         {
             method: 'GET',
@@ -144,13 +205,34 @@ export async function fetchSectionCards(
         },
         'Failed to fetch cards',
     )
+
+    if (data === null) return null
+
+    return {
+        sectionId,
+        cards: toRawList(data, 'cards').map(normalizeCard),
+    }
+}
+
+// 문항 응답이 { sectionId, questions } 로 오기도 하고 배열로 바로 오기도 해서 한 모양으로 맞춘다.
+// 식별자도 id / questionId 가 섞여 있어 둘 다 받는다.
+function normalizeSectionQuestion(raw: Record<string, unknown>): SectionQuestion {
+    const answer = raw.answer ?? raw.correctAnswer
+    return {
+        id: typeof raw.id === 'number' ? raw.id : Number(raw.questionId ?? raw.id ?? 0),
+        type: String(raw.type ?? ''),
+        questionText: String(raw.questionText ?? ''),
+        options: Array.isArray(raw.options) ? raw.options.map((option) => String(option)) : [],
+        answer: typeof answer === 'string' && answer.length > 0 ? answer : null,
+        explanation: typeof raw.explanation === 'string' ? raw.explanation : null,
+    }
 }
 
 export async function fetchSectionQuestions(
     sectionId: number,
     signal?: AbortSignal,
 ): Promise<SectionQuestionData | null> {
-    return fetchSectionResponse<SectionQuestionData>(
+    const data = await fetchSectionResponse<unknown>(
         `${API_BASE_URL}/section/${sectionId}/question`,
         {
             method: 'GET',
@@ -159,6 +241,121 @@ export async function fetchSectionQuestions(
         },
         'Failed to fetch questions',
     )
+
+    if (data === null) return null
+
+    return {
+        sectionId,
+        questions: toRawList(data, 'questions').map(normalizeSectionQuestion),
+    }
+}
+
+// BigInt id 는 number 변환 시 정밀도가 깨질 수 있어 문자열 그대로 쓴다.
+function toBigIntString(value: unknown): string {
+    if (typeof value === 'string') return value
+    if (typeof value === 'number') return String(value)
+    return ''
+}
+
+function toNullableNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string' && value.trim().length > 0) {
+        const parsed = Number(value)
+        return Number.isFinite(parsed) ? parsed : null
+    }
+    return null
+}
+
+function normalizeAnnotationTarget(raw: unknown): AnnotationTarget | null {
+    if (!raw || typeof raw !== 'object') return null
+    const record = raw as Record<string, unknown>
+    return {
+        mode: String(record.mode ?? ''),
+        courseId: toNullableNumber(record.courseId),
+        lessonId: toNullableNumber(record.lessonId),
+        sectionId: toNullableNumber(record.sectionId),
+        sectionType: String(record.sectionType ?? ''),
+        cardId: toNullableNumber(record.cardId),
+        materialId: toNullableNumber(record.materialId),
+        pageNumber: toNullableNumber(record.pageNumber),
+    }
+}
+
+function normalizeAnnotationConcept(raw: unknown): AnnotationConcept | null {
+    if (!raw || typeof raw !== 'object') return null
+    const record = raw as Record<string, unknown>
+    return {
+        id: toBigIntString(record.id),
+        title: String(record.title ?? ''),
+        explanation: record.explanation ?? null,
+        target: normalizeAnnotationTarget(record.target),
+    }
+}
+
+function normalizeAnnotation(raw: Record<string, unknown>): SectionAnnotation | null {
+    const type = String(raw.type ?? '').toUpperCase()
+    if (type !== 'VOCAB' && type !== 'GRAMMAR') return null
+
+    const startOffset = toNullableNumber(raw.startOffset)
+    const endOffset = toNullableNumber(raw.endOffset)
+    if (startOffset === null || endOffset === null || startOffset < 0 || endOffset <= startOffset) {
+        return null
+    }
+
+    return {
+        id: toBigIntString(raw.id),
+        type,
+        startOffset,
+        endOffset,
+        surface: String(raw.surface ?? ''),
+        posTags: Array.isArray(raw.posTags) ? raw.posTags.map((tag) => String(tag)) : [],
+        confidence: toNullableNumber(raw.confidence),
+        concept: normalizeAnnotationConcept(raw.concept),
+    }
+}
+
+function normalizeAnnotationUnit(raw: Record<string, unknown>): AnnotationUnit {
+    const annotations = Array.isArray(raw.annotations) ? raw.annotations : []
+    return {
+        id: toBigIntString(raw.id),
+        materialId: toNullableNumber(raw.materialId) ?? 0,
+        jsonPath: String(raw.jsonPath ?? ''),
+        text: String(raw.text ?? ''),
+        textHash: String(raw.textHash ?? ''),
+        analysisStatus: String(raw.analysisStatus ?? ''),
+        annotations: annotations
+            .filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === 'object'))
+            .map(normalizeAnnotation)
+            .filter((annotation): annotation is SectionAnnotation => annotation !== null),
+    }
+}
+
+// GET /section/{id}/annotations — APPROVED annotation 만 내려온다.
+// 기존 수업 API 는 그대로 두고 MARK 기능에서만 추가로 호출한다.
+export async function fetchSectionAnnotations(
+    sectionId: number,
+    signal?: AbortSignal,
+): Promise<SectionAnnotationsData | null> {
+    const data = await fetchSectionResponse<unknown>(
+        `${API_BASE_URL}/section/${sectionId}/annotations`,
+        {
+            method: 'GET',
+            headers: buildHeaders(),
+            signal,
+        },
+        'Failed to fetch annotations',
+    )
+
+    if (data === null || typeof data !== 'object') return null
+
+    const record = data as Record<string, unknown>
+    return {
+        sectionId: toNullableNumber(record.sectionId) ?? sectionId,
+        courseId: toNullableNumber(record.courseId),
+        lessonId: toNullableNumber(record.lessonId),
+        offsetEncoding: String(record.offsetEncoding ?? 'UTF16'),
+        units: toRawList(record, 'units').map(normalizeAnnotationUnit),
+    }
 }
 
 export async function checkSectionAnswer(
@@ -199,4 +396,34 @@ export function generateIdempotencyKey(): string {
         return crypto.randomUUID()
     }
     return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+// GO TO LESSON 이동 전에 목적지 섹션이 실제로 열리는지 확인한다.
+// 404 등으로 조회가 실패하거나 내용이 비어 있으면 이동하지 않는다.
+// (비어 있는 채로 이동하면 수업 화면이 하드코딩 예시 내용으로 채워져
+//  실제 목적지처럼 보이기 때문에 실패와 똑같이 취급한다.)
+export async function isAnnotationTargetAvailable(
+    sectionId: number,
+    sectionType: string,
+    signal?: AbortSignal,
+): Promise<boolean> {
+    if (!Number.isFinite(sectionId) || sectionId <= 0) return false
+
+    const normalizedType = sectionType.trim().toUpperCase()
+    try {
+        if (normalizedType === 'VOCAB' || normalizedType === 'VOCABULARY') {
+            const data = await fetchSectionCards(sectionId, signal)
+            return (data?.cards.length ?? 0) > 0
+        }
+
+        const materials = await fetchSectionMaterials(sectionId, signal)
+        if ((materials?.materials.length ?? 0) > 0) return true
+
+        // READING/LISTENING 처럼 자료 없이 문항만 있는 섹션도 있어 한 번 더 확인한다.
+        const questions = await fetchSectionQuestions(sectionId, signal)
+        return (questions?.questions.length ?? 0) > 0
+    } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') throw error
+        return false
+    }
 }

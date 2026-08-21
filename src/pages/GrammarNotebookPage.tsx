@@ -3,8 +3,16 @@ import './GrammarNotebookPage.css'
 import { useGrammarScraps } from '../hooks/useGrammarScraps.ts'
 import { useSectionMaterials } from '../hooks/useSectionMaterials.ts'
 import type { GrammarScrapItem } from '../types/scraps.types.ts'
+import {
+  contentTextDirection,
+  pickContentExplanation,
+  pickDialogueTranslation,
+  toContentLanguage,
+  type ContentLanguage,
+} from '../data/contentLanguage.ts'
 
 interface GrammarNotebookPageProps {
+  language: string
   onBack: () => void
 }
 
@@ -38,7 +46,8 @@ const previewGrammarScraps: GrammarScrapItem[] = [
   },
 ]
 
-function GrammarNotebookPage({ onBack }: GrammarNotebookPageProps) {
+function GrammarNotebookPage({ language, onBack }: GrammarNotebookPageProps) {
+  const contentLanguage = toContentLanguage(language)
   const [isRecentSort, setIsRecentSort] = useState(true)
   const [selectedScrap, setSelectedScrap] = useState<GrammarScrapItem | null>(null)
   const { items, loading, loadingMore, hasMore, error, fetchNextPage, refetch } =
@@ -107,7 +116,7 @@ function GrammarNotebookPage({ onBack }: GrammarNotebookPageProps) {
         </header>
 
         {selectedScrap ? (
-          <GrammarDetail scrap={selectedScrap} />
+          <GrammarDetail scrap={selectedScrap} contentLanguage={contentLanguage} />
         ) : (
           <>
             <div className="grammar-notebook-sort-row">
@@ -213,12 +222,20 @@ function GrammarNotebookPage({ onBack }: GrammarNotebookPageProps) {
   )
 }
 
-function GrammarDetail({ scrap }: { scrap: GrammarScrapItem }) {
+function GrammarDetail({
+  scrap,
+  contentLanguage,
+}: {
+  scrap: GrammarScrapItem
+  contentLanguage: ContentLanguage
+}) {
   const { data, loading } = useSectionMaterials(scrap.sectionId)
   const material = data?.materials.find((item) => item.type === 'GRAMMAR_TABLE') ?? data?.materials[0]
   const content = material?.contentText
-  const explanations = content?.explanations ?? []
+  // 모든 언어를 나열하지 않고 mother language에 해당하는 설명만 보여준다.
+  const explanation = pickContentExplanation(content, contentLanguage)
   const dialogues = content?.dialogues ?? []
+  const translationDir = contentTextDirection(contentLanguage)
 
   return (
     <section className="grammar-notebook-detail">
@@ -236,19 +253,14 @@ function GrammarDetail({ scrap }: { scrap: GrammarScrapItem }) {
         <p className="grammar-notebook-detail-label">Grammar</p>
         {loading ? (
           <p className="grammar-notebook-detail-copy">Loading...</p>
-        ) : explanations.length > 0 ? (
+        ) : explanation ? (
           <div className="grammar-notebook-detail-stack">
-            {explanations.map((explanation) => (
-              <p
-                key={`${explanation.lang}-${explanation.text}`}
-                className="grammar-notebook-detail-copy"
-              >
-                <span className="grammar-notebook-detail-lang">
-                  {explanation.lang.toUpperCase()}
-                </span>
-                {explanation.text}
-              </p>
-            ))}
+            <p
+              className="grammar-notebook-detail-copy"
+              dir={contentTextDirection(toContentLanguage(explanation.lang))}
+            >
+              {explanation.text}
+            </p>
           </div>
         ) : (
           <p className="grammar-notebook-detail-copy">
@@ -269,18 +281,26 @@ function GrammarDetail({ scrap }: { scrap: GrammarScrapItem }) {
           <p className="grammar-notebook-detail-label">Examples</p>
           <div className="grammar-notebook-dialogue-list">
             {dialogues.flatMap((dialogue, dialogueIndex) =>
-              dialogue.lines.map((line, lineIndex) => (
-                <div
-                  key={`${dialogueIndex}-${lineIndex}-${line.ko}`}
-                  className="grammar-notebook-dialogue-line"
-                >
-                  <span className="grammar-notebook-dialogue-speaker">{line.speaker}</span>
-                  <div>
-                    <p className="grammar-notebook-dialogue-ko">{line.ko}</p>
-                    <p className="grammar-notebook-dialogue-translation">{line.en}</p>
+              dialogue.lines.map((line, lineIndex) => {
+                // mother language 번역이 없으면 다른 언어로 폴백하지 않고 원문만 보여 준다.
+                const translation = pickDialogueTranslation(line, contentLanguage)
+                return (
+                  <div
+                    key={`${dialogueIndex}-${lineIndex}-${line.ko}`}
+                    className="grammar-notebook-dialogue-line"
+                  >
+                    <span className="grammar-notebook-dialogue-speaker">{line.speaker}</span>
+                    <div>
+                      <p className="grammar-notebook-dialogue-ko">{line.ko}</p>
+                      {translation.length > 0 ? (
+                        <p className="grammar-notebook-dialogue-translation" dir={translationDir}>
+                          {translation}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              )),
+                )
+              }),
             )}
           </div>
         </article>

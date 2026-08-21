@@ -1,5 +1,5 @@
 import type { HomeResumeData, HomeResumeResponse } from '../types/home.types.ts'
-import { getAuthToken } from './session.ts'
+import { authenticatedFetch, getAuthToken } from './session.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const HOME_RESUME_ENDPOINT = `${API_BASE_URL}/home/resume`
@@ -21,7 +21,7 @@ export async function fetchHomeResume(signal?: AbortSignal): Promise<HomeResumeD
     let res: Response
 
     try {
-        res = await fetch(HOME_RESUME_ENDPOINT, {
+        res = await authenticatedFetch(HOME_RESUME_ENDPOINT, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
