@@ -83,7 +83,14 @@ export function toMaterialPracticeItems(
         const sample = toTrimmedText(item?.sample)
         const front = toTrimmedText(item?.front) || toTrimmedText(item?.prompt)
         const back = toTrimmedText(item?.back) || toTrimmedText(item?.note) || sample
-        const { prefix, suffix } = splitPracticePrompt(toTrimmedText(item?.prompt) || front)
+        const prompt = toTrimmedText(item?.prompt) || front
+        const { prefix, suffix } = splitPracticePrompt(prompt)
+        const promptQuestion = prompt.split(/\r?\n/, 1)[0]?.trim() ?? ''
+        const fixedQuestion =
+          toTrimmedText(practice.fixedQuestion) ||
+          (kind === 'free' && promptQuestion.startsWith('질문:')
+            ? stripPromptNumber(promptQuestion)
+            : '')
 
         items.push({
           key: `material-${material.id}-${kind}-${blockIndex}-${itemIndex}`,
@@ -91,7 +98,7 @@ export function toMaterialPracticeItems(
           kind,
           // 자료 연습 문항은 정답이 함께 실려 있어 채점 API 를 쓰지 않는다.
           questionId: null,
-          fixedQuestion: toTrimmedText(practice.fixedQuestion),
+          fixedQuestion,
           hasImagePlaceholder: practice.imagePlaceholder === true,
           prefix: stage === 'cards' ? front : prefix,
           suffix: stage === 'cards' ? '' : suffix,

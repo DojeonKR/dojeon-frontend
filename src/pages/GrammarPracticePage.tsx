@@ -520,7 +520,6 @@ function GrammarPracticePage({
   const isFreeWritingPractice =
     (activePractice?.kind === 'free' && activePractice.isSampleAnswer) ||
     matchedTextGrade?.isSample === true
-  const showMakeSample = isFreeWritingPractice && isAnswered && correctAnswer.length > 0
 
   let isCorrectAnswer: boolean
   let isWrongAnswer: boolean
@@ -2424,9 +2423,9 @@ function GrammarPracticePage({
                       }}
                     />
                   </div>
-                  {isWrongAnswer || showMakeSample ? (
+                  {isWrongAnswer ? (
                     <p className="grammar-practice-correct-answer grammar-practice-correct-answer-make">
-                      {showMakeSample ? `Sample: ${correctAnswer}` : correctAnswer}
+                      {correctAnswer}
                     </p>
                   ) : null}
                 </div>
