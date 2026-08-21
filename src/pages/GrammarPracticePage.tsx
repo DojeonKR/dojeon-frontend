@@ -476,7 +476,18 @@ function GrammarPracticePage({
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
-    if (lines.length < 2) return null
+    if (lines.length === 0) return null
+
+    if (lines.length === 1) {
+      const singleLineMatch = lines[0].match(/^(질문:\s*.+?\([^)]*\))\s+(.+)$/)
+      if (!singleLineMatch) return null
+
+      return {
+        promptLine: singleLineMatch[1],
+        beforeBlank: singleLineMatch[2],
+        afterBlank: activePractice.suffix,
+      }
+    }
 
     return {
       promptLine: lines.slice(0, -1).join(' '),
