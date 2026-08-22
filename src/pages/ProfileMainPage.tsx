@@ -274,7 +274,18 @@ function ProfileMainPage({
 }: ProfileMainPageProps) {
   const { data: userMeData, loading, error, refetch } = useUserMe()
   const [isProfileImageSheetOpen, setIsProfileImageSheetOpen] = useState(false)
+  const [calendarOffsetMonths, setCalendarOffsetMonths] = useState(0)
   const isUnauthorized = isUnauthorizedError(error)
+  const apiProfileData = userMeData ? mapUserMeToProfileData(userMeData) : null
+  const profileData = {
+    ...(apiProfileData ?? profileMainMockData),
+    user: {
+      ...(apiProfileData?.user ?? profileMainMockData.user),
+      nickname: apiProfileData?.user.nickname ?? (nickname.trim() || profileMainMockData.user.nickname),
+      username: apiProfileData?.user.username ?? (username.trim() || profileMainMockData.user.username),
+    },
+  }
+  const { user, recentCourse, stats, attendance, recentAchievements } = profileData
 
   useEffect(() => {
     if (isUnauthorized) onUnauthorized()
@@ -311,18 +322,15 @@ function ProfileMainPage({
     )
   }
 
-  const apiProfileData = userMeData ? mapUserMeToProfileData(userMeData) : null
-  const profileData = {
-    ...(apiProfileData ?? profileMainMockData),
-    user: {
-      ...(apiProfileData?.user ?? profileMainMockData.user),
-      nickname: apiProfileData?.user.nickname ?? (nickname.trim() || profileMainMockData.user.nickname),
-      username: apiProfileData?.user.username ?? (username.trim() || profileMainMockData.user.username),
-    },
-  }
-  const { user, recentCourse, stats, attendance, recentAchievements } = profileData
-  const calendarDays = getCalendarDays(attendance.year, attendance.month)
-  const calendarTitle = `${monthNames[attendance.month - 1]} ${attendance.year}`
+  const calendarDate = new Date(attendance.year, attendance.month - 1 + calendarOffsetMonths, 1)
+  const calendarYear = calendarDate.getFullYear()
+  const calendarMonth = calendarDate.getMonth() + 1
+  const calendarDays = getCalendarDays(calendarYear, calendarMonth)
+  const calendarTitle = `${monthNames[calendarMonth - 1]} ${calendarYear}`
+  const activeDays =
+    calendarYear === attendance.year && calendarMonth === attendance.month
+      ? attendance.activeDays
+      : []
   const visibleAchievements = recentAchievements.slice(0, 5)
   const subscriptionPlanLabel =
     user.subscriptionTier === 'FREE' ? 'Free Plan' : `${user.subscriptionTier} Plan`
@@ -419,7 +427,11 @@ function ProfileMainPage({
             <div className="profile-main-calendar-header">
               <h3 className="profile-main-calendar-title">{calendarTitle}</h3>
               <div className="profile-main-calendar-controls">
-                <button type="button" aria-label="Previous month">
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  onClick={() => setCalendarOffsetMonths((current) => current - 1)}
+                >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="M15 18L9 12L15 6"
@@ -430,7 +442,11 @@ function ProfileMainPage({
                     />
                   </svg>
                 </button>
-                <button type="button" aria-label="Next month">
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={() => setCalendarOffsetMonths((current) => current + 1)}
+                >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="M9 18L15 12L9 6"
@@ -458,12 +474,12 @@ function ProfileMainPage({
                   <span key={day} className="profile-main-calendar-day">
                     <span
                       className={`profile-main-calendar-mark ${
-                        attendance.activeDays.includes(day)
+                        activeDays.includes(day)
                           ? 'profile-main-calendar-mark-active'
                           : ''
                       }`}
                     >
-                      {attendance.activeDays.includes(day) ? (
+                      {activeDays.includes(day) ? (
                         <img src={starIcon} alt="" aria-hidden="true" />
                       ) : null}
                     </span>

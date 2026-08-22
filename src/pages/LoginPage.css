@@ -29,7 +29,7 @@
 
 .login-error-line {
   display: block;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .login-brand {

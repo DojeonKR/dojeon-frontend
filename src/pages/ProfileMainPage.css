@@ -360,8 +360,8 @@
 }
 
 .profile-main-calendar-controls button {
-  width: 24px;
-  height: 24px;
+  width: 44px;
+  height: 44px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -370,10 +370,6 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-}
-
-.profile-main-calendar-controls button:last-child {
-  color: var(--dojeon-color-gray-300);
 }
 
 .profile-main-weekdays,

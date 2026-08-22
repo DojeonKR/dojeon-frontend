@@ -55,8 +55,8 @@ function HomePage({
   const [selectedGoalType, setSelectedGoalType] = useState<'today' | 'week'>('today')
   const { data, loading, error, refetch } = useHomeResume()
 
-  const displayName = data?.userFirstName ?? userName ?? ''
-  const dailyStreak = data?.dailyStreak ?? 0
+  const displayName = data?.userFirstName?.trim() || userName?.trim() || ''
+  const dailyStreak = data?.dailyStreak ?? null
   const lastLesson = data?.lastLesson ?? null
   const weeklyAttendance = data?.weeklyAttendance ?? []
   const lessonPreview = lastLesson
@@ -66,30 +66,25 @@ function HomePage({
         firstLine: lastLesson.sectionTitle,
         secondLine: getLessonPreview(lastLesson),
       }
-    : {
-        course: 'Course 1 lesson 5',
-        title: '-을까요?',
-        firstLine: '같이 점심',
-        secondLine: '먹을까요?',
-      }
+    : null
 
   const activeGoal = useMemo(() => {
     if (selectedGoalType === 'today') {
       return {
         title: 'Today’s Goal',
-        current: data?.todayGoal.studiedMin ?? 0,
-        total: data?.todayGoal.targetMin ?? 0,
+        current: data?.todayGoal.studiedMin ?? null,
+        total: data?.todayGoal.targetMin ?? null,
       }
     }
     return {
       title: 'Week Goal',
-      current: data?.weekGoal.studiedMin ?? 0,
-      total: data?.weekGoal.targetMin ?? 0,
+      current: data?.weekGoal.studiedMin ?? null,
+      total: data?.weekGoal.targetMin ?? null,
     }
   }, [data, selectedGoalType])
 
   const progressPercent =
-    activeGoal.total > 0
+    activeGoal.total !== null && activeGoal.current !== null && activeGoal.total > 0
       ? Math.min(100, Math.max(0, (activeGoal.current / activeGoal.total) * 100))
       : 0
   const shortFillPercent = progressPercent
@@ -115,43 +110,51 @@ function HomePage({
         ) : null}
 
         <header className="home-greeting">
-          <p className="home-greeting-hi">Hi, {displayName || 'Lior'}</p>
+          <p className="home-greeting-hi">Hi{displayName ? `, ${displayName}` : ''}</p>
           <p className="home-greeting-welcome">Welcome back</p>
         </header>
 
         <section className="home-card lesson-card">
           <div className="lesson-head">
             <h3 className="lesson-title">Today’s lesson</h3>
-            <p className="lesson-subtitle">{lessonPreview.course}</p>
+            {lessonPreview ? <p className="lesson-subtitle">{lessonPreview.course}</p> : null}
           </div>
-          <div className="lesson-main">
-            <div className="lesson-body">
-              <p className="lesson-sentence primary">{lessonPreview.title}</p>
-              <p className="lesson-sentence secondary">
-                <span className="lesson-word">{lessonPreview.firstLine}</span>
-                <span className="lesson-apply">{lessonPreview.secondLine}</span>
-              </p>
-            </div>
-            <img className="lesson-character" src={lessonCharacterImage} alt="" aria-hidden="true" />
-          </div>
-          <button
-            className="start-btn"
-            type="button"
-            disabled={!lastLesson || !onStartLesson}
-            onClick={() => {
-              if (lastLesson) onStartLesson?.(lastLesson)
-            }}
-          >
-            START
-          </button>
+          {lessonPreview ? (
+            <>
+              <div className="lesson-main">
+                <div className="lesson-body">
+                  <p className="lesson-sentence primary">{lessonPreview.title}</p>
+                  <p className="lesson-sentence secondary">
+                    <span className="lesson-word">{lessonPreview.firstLine}</span>
+                    <span className="lesson-apply">{lessonPreview.secondLine}</span>
+                  </p>
+                </div>
+                <img className="lesson-character" src={lessonCharacterImage} alt="" aria-hidden="true" />
+              </div>
+              <button
+                className="start-btn"
+                type="button"
+                disabled={!onStartLesson}
+                onClick={() => {
+                  if (lastLesson) onStartLesson?.(lastLesson)
+                }}
+              >
+                START
+              </button>
+            </>
+          ) : (
+            <p className="lesson-empty">No lesson in progress yet.</p>
+          )}
         </section>
 
         <section className="home-card streak-card">
-          <h2 className="streak-title">{dailyStreak} days in a row !</h2>
+          <h2 className="streak-title">
+            {dailyStreak === null ? 'No streak data' : `${dailyStreak} days in a row !`}
+          </h2>
           <div className="streak-indicators" role="list" aria-label="Daily streak progress">
             <div className="streak-track">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                const isComplete = weeklyAttendance[index] ?? index < dailyStreak
+                const isComplete = weeklyAttendance[index] === true
 
                 return (
                   <span
@@ -199,7 +202,7 @@ function HomePage({
                     style={{ left: `${bubbleLeft}%` }}
                     aria-hidden="true"
                   >
-                    {activeGoal.current}min
+                    {activeGoal.current === null ? '--' : `${activeGoal.current}min`}
                   </div>
                   <div
                     className="goal-progress-track"
@@ -214,7 +217,9 @@ function HomePage({
                     />
                   </div>
                 </div>
-                <span className="goal-total">{activeGoal.total}min</span>
+                <span className="goal-total">
+                  {activeGoal.total === null ? '--' : `${activeGoal.total}min`}
+                </span>
               </div>
             </section>
           </section>
@@ -229,7 +234,7 @@ function HomePage({
               alt=""
               aria-hidden="true"
             />
-            <p className="practice-coming-soon-text">Comming Soon</p>
+            <p className="practice-coming-soon-text">Coming Soon</p>
           </div>
         </button>
       </section>
@@ -240,6 +245,7 @@ function HomePage({
             type="button"
             className={`home-tab ${tab.label === 'HOME' ? 'home-tab-active' : ''}`}
             key={tab.label}
+            aria-current={tab.label === 'HOME' ? 'page' : undefined}
             onClick={() => {
               if (tab.label === 'CLASS') onOpenClass()
               if (tab.label === 'PRACTICE') onOpenPractice()

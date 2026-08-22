@@ -7,7 +7,7 @@
   padding: clamp(6px, 2dvh, 14px) 24px clamp(10px, 2dvh, 18px);
   box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 .onboarding-screen-name {
@@ -37,8 +37,8 @@
 .onboarding-back {
   border: 0;
   background: transparent;
-  width: 48px;
-  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   transform: translate(-16px, 3px);
   border-radius: 50%;
   display: inline-flex;
@@ -270,6 +270,14 @@
   white-space: pre-line;
   line-height: 1.2;
   cursor: pointer;
+}
+
+.onboarding-back:focus-visible,
+.onboarding-next-btn:focus-visible,
+.onboarding-choice-btn:focus-visible,
+.onboarding-complete-button:focus-visible {
+  outline: 2px solid var(--dojeon-color-primary-action);
+  outline-offset: 2px;
 }
 
 .onboarding-choice-btn-compact {

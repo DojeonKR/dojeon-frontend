@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './LoginPage.css'
 import loginCharacter from '../assets/9.png'
 import { LOGIN_CREDENTIALS_ERROR_MESSAGE } from '../services/auth'
@@ -6,27 +6,14 @@ import { LOGIN_CREDENTIALS_ERROR_MESSAGE } from '../services/auth'
 interface LoginPageProps {
   onSignUp: () => void
   onLogin?: (credentials: { email: string; password: string }) => Promise<void>
+  onGoogleLogin?: () => Promise<void>
 }
 
-function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
+function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  useEffect(() => {
-    if (!loginError) {
-      return
-    }
-
-    const timer = window.setTimeout(() => {
-      setLoginError('')
-    }, 3000)
-
-    return () => {
-      window.clearTimeout(timer)
-    }
-  }, [loginError])
 
   return (
     <main className="login-screen">
@@ -80,6 +67,8 @@ function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
           <span className="sr-only">Email</span>
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             className="field"
             placeholder="Email"
             value={email}
@@ -95,6 +84,8 @@ function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
           <span className="sr-only">Password</span>
           <input
             type="password"
+            name="password"
+            autoComplete="current-password"
             className="field"
             placeholder="Password"
             value={password}
@@ -106,19 +97,38 @@ function LoginPage({ onSignUp, onLogin }: LoginPageProps) {
           />
         </label>
 
-        <p className="forgot-password">Forget password?</p>
-
         <button type="submit" className="btn btn-primary login-btn" disabled={isSubmitting}>
           {isSubmitting ? 'LOGGING IN...' : 'LOG IN'}
         </button>
 
-        <button type="button" className="btn btn-ghost google-btn" disabled={isSubmitting}>
+        <button
+          type="button"
+          className="btn btn-ghost google-btn"
+          disabled={isSubmitting}
+          onClick={async () => {
+            if (!onGoogleLogin || isSubmitting) return
+
+            setIsSubmitting(true)
+            setLoginError('')
+            try {
+              await onGoogleLogin()
+            } catch (error) {
+              setLoginError(
+                error instanceof Error
+                  ? error.message
+                  : 'Unable to log in with Google. Please try again.',
+              )
+            } finally {
+              setIsSubmitting(false)
+            }
+          }}
+        >
           Log in with Google
         </button>
       </form>
 
       <p className="signup-copy">
-        Don’t have account?
+        Don’t have an account?
         <button type="button" onClick={onSignUp} className="signup-link-btn">
           Sign up
         </button>

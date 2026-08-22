@@ -122,12 +122,42 @@
     --accent-bg: rgba(192, 132, 252, 0.15);
     --accent-border: rgba(192, 132, 252, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
+    --dojeon-color-background: #16171d;
+    --dojeon-color-surface: #1f2028;
+    --dojeon-color-white: #f9fafb;
+    --dojeon-color-gray-50: #242631;
+    --dojeon-color-gray-100: #2e303a;
+    --dojeon-color-gray-200: #3b3d49;
+    --dojeon-color-gray-300: #9ca3af;
+    --dojeon-color-gray-400: #aeb4bf;
+    --dojeon-color-gray-500: #c5cad3;
+    --dojeon-color-gray-600: #d1d5db;
+    --dojeon-color-gray-700: #e5e7eb;
+    --dojeon-color-gray-800: #f3f4f6;
+    --dojeon-color-gray-900: #ffffff;
+    --dojeon-color-primary-container: #2c2235;
+    --dojeon-color-primary-container-soft: #33243d;
+    --dojeon-color-primary-border: #6f4d86;
+    --dojeon-color-primary-focus-ring: rgba(192, 132, 252, 0.35);
+    --dojeon-color-tab-inactive: #2e303a;
+    --dojeon-color-error-surface: #3a2024;
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
 
   #social .button-icon {
     filter: invert(1) brightness(2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

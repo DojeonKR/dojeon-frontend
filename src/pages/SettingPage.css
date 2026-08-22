@@ -106,6 +106,10 @@
   opacity: 0.7;
 }
 
+.setting-account-item-static {
+  cursor: default;
+}
+
 .setting-account-item + .setting-account-item::before {
   content: '';
   position: absolute;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './VocabularyPage.css'
 import { useVocabScraps } from '../hooks/useVocabScraps.ts'
 import type { VocabScrapGroup, VocabScrapItem } from '../types/scraps.types.ts'
@@ -58,6 +58,28 @@ const getLessonTag = (group: VocabScrapGroup) => {
 
   return formatLessonNumbers(lessonNumbers)
 }
+
+const getCreatedTime = (item: VocabScrapItem) => new Date(item.createdAt).getTime() || 0
+
+const sortVocabItems = (items: VocabScrapItem[], isRecentSort: boolean) =>
+  [...items].sort((left, right) =>
+    isRecentSort
+      ? getCreatedTime(right) - getCreatedTime(left)
+      : getCreatedTime(left) - getCreatedTime(right),
+  )
+
+const sortVocabGroups = (groups: VocabScrapGroup[], isRecentSort: boolean) =>
+  groups
+    .map((group) => ({
+      ...group,
+      items: sortVocabItems(group.items, isRecentSort),
+    }))
+    .sort((left, right) => {
+      const leftTime = Math.max(...left.items.map(getCreatedTime), 0)
+      const rightTime = Math.max(...right.items.map(getCreatedTime), 0)
+
+      return isRecentSort ? rightTime - leftTime : leftTime - rightTime
+    })
 
 const previewVocabGroups: VocabScrapGroup[] = [
   {
@@ -169,6 +191,10 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
   const [flashcardScrapIds, setFlashcardScrapIds] = useState<Set<string>>(() => new Set())
   const { groups, loading, loadingMore, hasMore, error, fetchNextPage, refetch } = useVocabScraps()
   const visibleGroups = import.meta.env.DEV && groups.length === 0 ? previewVocabGroups : groups
+  const sortedVisibleGroups = useMemo(
+    () => sortVocabGroups(visibleGroups, isRecentSort),
+    [isRecentSort, visibleGroups],
+  )
   // 코스별 그룹은 모든 페이지가 도착해야 완성되므로 남은 페이지를 이어서 받아온다.
   useEffect(() => {
     if (!hasMore || loadingMore) return
@@ -177,7 +203,7 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
 
   // 그룹 객체를 저장하지 않고 courseId로 다시 찾는다. 뒤이어 도착한 페이지의 단어까지 반영되도록.
   const selectedGroup =
-    visibleGroups.find((group) => group.courseId === selectedCourseId) ?? null
+    sortedVisibleGroups.find((group) => group.courseId === selectedCourseId) ?? null
   const selectedFlashcardItems = selectedGroup
     ? selectedGroup.items.filter((item) => flashcardScrapIds.has(item.scrapId))
     : []
@@ -268,8 +294,9 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
               type="button"
               className="vocabulary-sort-button"
               onClick={() => setIsRecentSort((prev) => !prev)}
+              aria-label={isRecentSort ? 'Sort oldest first' : 'Sort newest first'}
             >
-              <span>Recently viewed</span>
+              <span>{isRecentSort ? 'Recently viewed' : 'Oldest viewed'}</span>
               <svg
                 className={`vocabulary-sort-icon ${isRecentSort ? 'is-recent' : 'is-alt'}`}
                 width="18"
@@ -317,14 +344,14 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
           />
         ) : loading ? (
           <p className="vocabulary-loading">Loading...</p>
-        ) : error && visibleGroups.length === 0 ? (
+        ) : error && sortedVisibleGroups.length === 0 ? (
           <div className="notebook-empty-state">
             <p>Vocabulary sync unavailable.</p>
             <button type="button" onClick={() => void refetch()}>
               Retry sync
             </button>
           </div>
-        ) : visibleGroups.length === 0 ? (
+        ) : sortedVisibleGroups.length === 0 ? (
           <div className="notebook-empty-state">
             <p>No vocabulary scraps yet.</p>
             {error ? (
@@ -336,7 +363,7 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
         ) : (
           <>
             <CourseList
-              groups={visibleGroups}
+              groups={sortedVisibleGroups}
               onOpenGroup={(group) => setSelectedCourseId(group.courseId)}
             />
             {loadingMore ? <p className="vocabulary-loading">Loading more...</p> : null}
@@ -529,6 +556,7 @@ function WordDetail({
   const translation = getTranslation(item, contentLanguage)
   const notes = getNotes(item, contentLanguage)
   const example = getExample(item)
+  const audioUrl = item.card?.audioUrl
 
   return (
     <section className="vocabulary-detail">
@@ -556,9 +584,16 @@ function WordDetail({
         </p>
         <div className="vocabulary-detail-pronunciation">
           <span>Pronunciation</span>
-          <button type="button" className="vocabulary-audio-button" aria-label="Play pronunciation">
-            <SpeakerIcon />
-          </button>
+          {audioUrl ? (
+            <button
+              type="button"
+              className="vocabulary-audio-button"
+              aria-label="Play pronunciation"
+              onClick={() => void new Audio(audioUrl).play()}
+            >
+              <SpeakerIcon />
+            </button>
+          ) : null}
         </div>
       </article>
 

@@ -1,4 +1,4 @@
-import { type PointerEvent, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, type PointerEvent, useEffect, useMemo, useRef, useState } from 'react'
 import characterImage from '../assets/character.png'
 import './VocabularyLessonPage.css'
 import { useSectionCards } from '../hooks/useSectionCards.ts'
@@ -101,6 +101,7 @@ function VocabularyLessonPage({
   const [expandedTableWordIds, setExpandedTableWordIds] = useState<number[]>([])
   const pointerStartRef = useRef<{ pointerId: number; clientX: number } | null>(null)
   const shouldIgnoreCardClickRef = useRef(false)
+  const promptCancelButtonRef = useRef<HTMLButtonElement | null>(null)
 
   // Base scrap state derived directly from API data (no useEffect)
   const baseScrapedIds = useMemo(
@@ -169,6 +170,8 @@ function VocabularyLessonPage({
   })
 
   const currentCard = vocabularyItems[currentCardIndex]
+  const hasPreviousCard = currentCardIndex > 0
+  const hasNextCard = currentCardIndex < vocabularyItems.length - 1
   const carouselEntries = [
     { id: 'placeholder-start', type: 'placeholder' as const },
     ...vocabularyItems.map((item, index) => ({ id: item.id, type: 'word' as const, item, index })),
@@ -267,6 +270,21 @@ function VocabularyLessonPage({
     })
   }
 
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      moveCard('prev')
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      moveCard('next')
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      if (currentCard) toggleFlip(currentCard.id)
+    }
+  }
+
   const toggleTableWord = (wordId: number) => {
     setExpandedTableWordIds((current) =>
       current.includes(wordId)
@@ -357,6 +375,10 @@ function VocabularyLessonPage({
       : promptWordSaved
         ? 'Do you want to remove it from your personal list?'
         : 'Do you want to add it to your personal list?'
+
+  useEffect(() => {
+    if (promptWord) promptCancelButtonRef.current?.focus()
+  }, [promptWord])
 
   const renderPersonalListIcon = (isSaved: boolean) => {
     if (isSaved) {
@@ -520,6 +542,10 @@ function VocabularyLessonPage({
                 <section
                   className="vocabulary-lesson-carousel"
                   aria-label="Vocabulary cards"
+                  aria-roledescription="carousel"
+                  aria-describedby="vocabulary-card-position"
+                  tabIndex={0}
+                  onKeyDown={handleCardKeyDown}
                   onPointerDown={handlePointerDown}
                   onPointerUp={handlePointerUp}
                   onPointerCancel={() => {
@@ -560,6 +586,9 @@ function VocabularyLessonPage({
                             <>
                               <span className="vocabulary-lesson-main-card-count">
                                 {entry.index + 1} /{vocabularyItems.length}
+                              </span>
+                              <span id="vocabulary-card-position" className="vocabulary-lesson-sr-only" aria-live="polite">
+                                Card {entry.index + 1} of {vocabularyItems.length}
                               </span>
 
                               <div
@@ -663,13 +692,37 @@ function VocabularyLessonPage({
                   </div>
                 </section>
 
-                <div className="vocabulary-lesson-indicators" aria-hidden="true">
+                <div className="vocabulary-lesson-card-controls">
+                  <button
+                    type="button"
+                    className="vocabulary-lesson-card-control"
+                    disabled={!hasPreviousCard}
+                    onClick={() => moveCard('prev')}
+                    aria-label="Previous vocabulary card"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="vocabulary-lesson-card-control"
+                    disabled={!hasNextCard}
+                    onClick={() => moveCard('next')}
+                    aria-label="Next vocabulary card"
+                  >
+                    ›
+                  </button>
+                </div>
+
+                <div className="vocabulary-lesson-indicators" role="list" aria-label="Vocabulary card progress">
                   {vocabularyItems.map((item, index) => (
                     <span
                       key={item.id}
+                      role="listitem"
                       className={`vocabulary-lesson-indicator ${
                         index === currentCardIndex ? 'vocabulary-lesson-indicator-active' : ''
                       }`}
+                      aria-label={`Card ${index + 1} of ${vocabularyItems.length}`}
+                      aria-current={index === currentCardIndex ? 'step' : undefined}
                     />
                   ))}
                 </div>
@@ -809,7 +862,11 @@ function VocabularyLessonPage({
       ) : null}
 
       {promptWord ? (
-        <div className="vocabulary-lesson-modal-backdrop" role="presentation">
+        <div
+          className="vocabulary-lesson-modal-backdrop"
+          role="presentation"
+          onClick={() => setPersonalListPrompt(null)}
+        >
           <section
             className="vocabulary-lesson-modal"
             role="dialog"
@@ -819,12 +876,17 @@ function VocabularyLessonPage({
                 ? 'Confirm removal from personal list'
                 : 'Confirm addition to personal list'
             }
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setPersonalListPrompt(null)
+            }}
           >
             <p className="vocabulary-lesson-modal-copy">
               {promptCopy}
             </p>
             <div className="vocabulary-lesson-modal-actions">
               <button
+                ref={promptCancelButtonRef}
                 type="button"
                 className="vocabulary-lesson-modal-button vocabulary-lesson-modal-button-secondary"
                 onClick={() => setPersonalListPrompt(null)}

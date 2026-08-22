@@ -353,7 +353,7 @@
 }
 
 .vocabulary-lesson-indicators {
-  margin-top: 27px;
+  margin-top: 12px;
   display: flex;
   justify-content: center;
   gap: 8px;
@@ -368,6 +368,42 @@
 
 .vocabulary-lesson-indicator-active {
   background: var(--dojeon-color-primary-action);
+}
+
+.vocabulary-lesson-card-controls {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.vocabulary-lesson-card-control {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--dojeon-color-primary-border);
+  border-radius: 50%;
+  background: var(--dojeon-color-surface);
+  color: var(--dojeon-color-primary-action);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vocabulary-lesson-card-control:disabled {
+  color: var(--dojeon-color-gray-300);
+  cursor: not-allowed;
+}
+
+.vocabulary-lesson-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .vocabulary-lesson-flashcard-button {

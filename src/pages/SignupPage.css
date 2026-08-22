@@ -8,7 +8,7 @@
   padding: clamp(6px, 2dvh, 14px) 24px clamp(10px, 2dvh, 18px);
   box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 .signup-header {
@@ -23,8 +23,10 @@
 }
 
 .back-btn {
-  width: 48px;
-  height: 48px;
+  position: relative;
+  z-index: 1;
+  min-width: 48px;
+  min-height: 48px;
   transform: translate(-16px, 3px);
   border-radius: 50%;
   border: 0;
@@ -53,6 +55,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .signup-content {
@@ -121,6 +124,7 @@
 
 .signup-form .field:focus-visible {
   border-color: var(--dojeon-color-primary-border);
+  box-shadow: 0 0 0 3px var(--dojeon-color-primary-focus-ring);
 }
 
 .signup-form .field.field-error-state,
@@ -168,6 +172,10 @@
   position: relative;
 }
 
+.password-input-wrap .field {
+  padding-right: 64px;
+}
+
 .password-visibility-toggle {
   position: absolute;
   right: 12px;
@@ -176,8 +184,8 @@
   border: 0;
   background: transparent;
   padding: 0;
-  width: 24px;
-  height: 24px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -321,6 +329,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .terms-check-icon {

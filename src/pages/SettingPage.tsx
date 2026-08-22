@@ -261,11 +261,11 @@ function SettingPage({
         <section className="setting-section setting-section-support">
           <h2 className="setting-section-title">Support</h2>
           <div className="setting-account-card" role="list" aria-label="support settings">
-            <button type="button" className="setting-account-item" role="listitem">
+            <div className="setting-account-item setting-account-item-static" role="listitem">
               <img src={faqIcon} alt="" className="setting-account-icon" aria-hidden="true" />
               <span className="setting-account-label">FAQ</span>
-            </button>
-            <button type="button" className="setting-account-item" role="listitem">
+            </div>
+            <div className="setting-account-item setting-account-item-static" role="listitem">
               <img
                 src={contactSupportIcon}
                 alt=""
@@ -273,8 +273,8 @@ function SettingPage({
                 aria-hidden="true"
               />
               <span className="setting-account-label">Contact Support</span>
-            </button>
-            <button type="button" className="setting-account-item" role="listitem">
+            </div>
+            <div className="setting-account-item setting-account-item-static" role="listitem">
               <img
                 src={feedbackIcon}
                 alt=""
@@ -282,7 +282,7 @@ function SettingPage({
                 aria-hidden="true"
               />
               <span className="setting-account-label">Feedback</span>
-            </button>
+            </div>
           </div>
         </section>
 
@@ -304,9 +304,9 @@ function SettingPage({
                   |
                 </span>
               ) : null}
-              <button type="button" className="setting-policy-link">
+              <span className="setting-policy-link setting-policy-link-static">
                 {label}
-              </button>
+              </span>
             </Fragment>
           ))}
         </div>

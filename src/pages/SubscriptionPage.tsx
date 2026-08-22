@@ -67,7 +67,6 @@ function SubscriptionPage({
     return isFreeTier(currentSubscriptionTier) ? 'free' : 'pro'
   })
   const [selectedPlanId, setSelectedPlanId] = useState(currentSubscriptionPlanId ?? '')
-  const [isTrialDialogOpen, setIsTrialDialogOpen] = useState(false)
 
   useEffect(() => {
     if (isUnauthorized) onUnauthorized()
@@ -83,10 +82,6 @@ function SubscriptionPage({
     ?? paidPlans[0]
   const selectedPlan = paidPlans.find((plan) => hasSamePlanId(plan.planId, selectedPlanId))
     ?? defaultPaidPlan
-  const trialEnded = isTrialTier(currentSubscriptionTier)
-    && Boolean(subscriptionExpiresAt)
-    && new Date(subscriptionExpiresAt!).getTime() <= openedAt
-  const canStartTrial = Boolean(trialPlan) && !trialEnded
   const activePlan = selectedMode === 'free'
     ? backendFreePlan
     : selectedMode === 'trial'
@@ -102,7 +97,7 @@ function SubscriptionPage({
   }
 
   const actionText = selectedMode === 'trial'
-    ? 'Start 7-day Trial'
+    ? 'Current Trial'
     : selectedMode === 'pro'
       ? `Subscribe ${formatDuration(selectedPlan?.billingCycleMonths ?? 1)}`
       : 'Keep Free Plan'
@@ -157,7 +152,7 @@ function SubscriptionPage({
                 </label>
               ) : null}
 
-              {canStartTrial ? (
+              {hasActiveTrial && trialPlan ? (
                 <label className={selectedMode === 'trial' ? 'is-selected' : ''}>
                   <input
                     type="radio"
@@ -214,41 +209,15 @@ function SubscriptionPage({
             || Boolean(error)
             || !data
             || selectedMode === 'pro'
+            || selectedMode === 'trial'
           }
           onClick={() => {
-            if (selectedMode === 'trial') {
-              setIsTrialDialogOpen(true)
-              return
-            }
             onClose()
           }}
         >
           {actionText}
         </button>
       </footer>
-
-      {isTrialDialogOpen ? (
-        <div className="subscription-trial-backdrop" role="presentation">
-          <section role="dialog" aria-modal="true" aria-labelledby="trial-dialog-title">
-            <h2 id="trial-dialog-title">Start Free Trial</h2>
-            <p>
-              If you start the trial, once the 7 days are over, you cannot experience it again
-              before subscribing.
-            </p>
-            <p>Are you sure you want to start the trial?</p>
-            <div>
-              <button type="button" onClick={() => setIsTrialDialogOpen(false)}>No</button>
-              <button
-                type="button"
-                disabled
-                aria-label="Trial activation is not available yet"
-              >
-                Yes
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </main>
   )
 }

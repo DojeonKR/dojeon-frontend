@@ -6,7 +6,6 @@ import fileIcon from '../assets/file.svg'
 import bookOpenIcon from '../assets/book-open.svg'
 import profileIcon from '../assets/user.svg'
 import { useCoursesDashboard } from '../hooks/useCoursesDashboard.ts'
-import type { DashboardCourse } from '../types/dasboard.types.ts'
 
 const tabs = [
   { icon: homeIcon, label: 'HOME' },
@@ -18,8 +17,6 @@ const tabs = [
 
 const progressDotInset = 10
 const progressDotStopGap = 8
-const minimumCourseCount = 5
-const fallbackProgressPercent = 18
 const trialTargetDays = 7
 const trialLabel = `${trialTargetDays}-day Trial available`
 
@@ -33,49 +30,7 @@ function getClassProgressFillWidth(activeCourseIndex: number, dotCount: number):
   }) * ${targetDotIndex} - ${progressDotStopGap}px)`
 }
 
-function createFallbackLessons(courseOrder: number): DashboardCourse['lessons'] {
-  return Array.from({ length: 5 }, (_, index) => ({
-    lessonId: -(courseOrder * 100 + index + 1),
-    title: 'Vocabulary',
-    subtitle: null,
-    orderNum: index + 1,
-    sectionCount: 1,
-    completedSectionCount: 1,
-    progressPercent: 100,
-    isCompleted: true,
-  }))
-}
-
-function createFallbackCourse(courseOrder: number): DashboardCourse {
-  return {
-    courseId: -courseOrder,
-    title: `Course ${courseOrder}`,
-    description: '',
-    orderNum: courseOrder,
-    isActive: true,
-    totalSections: 5,
-    completedSections: courseOrder === 1 ? 5 : 0,
-    overallProgressPercent: courseOrder === 1 ? 100 : 0,
-    totalStaySeconds: 0,
-    lessons: createFallbackLessons(courseOrder),
-  }
-}
-
-function getDisplayCourses(apiCourses: DashboardCourse[]): DashboardCourse[] {
-  const coursesByOrder = new Map<number, DashboardCourse>()
-  for (const course of apiCourses) {
-    coursesByOrder.set(course.orderNum || course.courseId, course)
-  }
-
-  return Array.from({ length: Math.max(minimumCourseCount, apiCourses.length) }, (_, index) => {
-    const courseOrder = index + 1
-    return coursesByOrder.get(courseOrder) ?? createFallbackCourse(courseOrder)
-  })
-}
-
 interface ClassPageProps {
-  preferFallbackContent?: boolean
-  defaultOpenCourseOrder?: number
   onOpenHome: () => void
   onOpenPractice: () => void
   onOpenNotebook: () => void
@@ -85,8 +40,6 @@ interface ClassPageProps {
 }
 
 function ClassPage({
-  preferFallbackContent = false,
-  defaultOpenCourseOrder,
   onOpenHome,
   onOpenPractice,
   onOpenNotebook,
@@ -99,8 +52,7 @@ function ClassPage({
 
   const resumeBanner = data?.resumeBanner ?? null
   const apiCourses = useMemo(() => data?.courses ?? [], [data])
-  const courses = useMemo(() => getDisplayCourses(apiCourses), [apiCourses])
-  const isUsingFallbackCourses = apiCourses.length === 0
+  const courses = apiCourses
   const isUnauthorized = error?.status === 401 || error?.status === 403
 
   useEffect(() => {
@@ -108,15 +60,14 @@ function ClassPage({
   }, [isUnauthorized, onUnauthorized])
 
   const progressPercent = useMemo(() => {
-    if (isUsingFallbackCourses) return fallbackProgressPercent
     if (!resumeBanner) return 0
     const activeCourse = courses.find((c) => c.courseId === resumeBanner.courseId)
     return activeCourse?.overallProgressPercent ?? resumeBanner.overallProgressPercent ?? 0
-  }, [courses, isUsingFallbackCourses, resumeBanner])
+  }, [courses, resumeBanner])
 
   const activeCourseIndex = (() => {
     if (!courses.length) return -1
-    if (isUsingFallbackCourses || !resumeBanner) return 0
+    if (!resumeBanner) return 0
 
     const index = courses.findIndex((course) => course.courseId === resumeBanner.courseId)
     return index >= 0 ? index : 0
@@ -126,16 +77,12 @@ function ClassPage({
 
   const openCourseIds = useMemo(() => {
     const open = new Set<number>()
-    if (defaultOpenCourseOrder !== undefined && !manuallyToggled.size) {
-      const defaultCourse = courses.find((course) => course.orderNum === defaultOpenCourseOrder)
-      if (defaultCourse) open.add(defaultCourse.courseId)
-    }
     for (const [courseId, isOpen] of manuallyToggled) {
       if (isOpen) open.add(courseId)
       else open.delete(courseId)
     }
     return open
-  }, [courses, defaultOpenCourseOrder, manuallyToggled])
+  }, [manuallyToggled])
 
   const toggleCourse = (courseId: number) => {
     const currentlyOpen = openCourseIds.has(courseId)
@@ -146,7 +93,7 @@ function ClassPage({
     })
   }
 
-  if (loading && !preferFallbackContent) {
+  if (loading) {
     return (
       <main className="class-screen">
         <section className="class-content">
@@ -158,7 +105,7 @@ function ClassPage({
 
   if (isUnauthorized) return null
 
-  if (error && !isUsingFallbackCourses && !preferFallbackContent) {
+  if (error) {
     return (
       <main className="class-screen">
         <section className="class-content">
@@ -184,7 +131,7 @@ function ClassPage({
               style={{ width: progressFillWidth }}
               aria-hidden="true"
             />
-            {Array.from({ length: classProgressDotCount }).map((_, index) => (
+            {Array.from({ length: courses.length }).map((_, index) => (
               <span
                 key={index}
                 className={`class-progress-dot ${
@@ -204,7 +151,9 @@ function ClassPage({
         </section>
 
         <section className="class-course-list" aria-label="courses">
-          {courses.map((course) => {
+          {courses.length === 0 ? (
+            <p className="class-empty">No courses available yet.</p>
+          ) : courses.map((course) => {
             const isOpen = openCourseIds.has(course.courseId)
             const courseLabel = `Course ${course.orderNum || course.courseId}`
 
@@ -315,6 +264,7 @@ function ClassPage({
             key={tab.label}
             type="button"
             className={`class-tab ${tab.label === 'CLASS' ? 'class-tab-active' : ''}`}
+            aria-current={tab.label === 'CLASS' ? 'page' : undefined}
             onClick={() => {
               if (tab.label === 'HOME') onOpenHome()
               if (tab.label === 'PRACTICE') onOpenPractice()

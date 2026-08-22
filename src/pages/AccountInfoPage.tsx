@@ -405,14 +405,16 @@ function AccountInfoPage({
           ))}
         </section>
 
-        <button
-          type="button"
-          className="account-info-delete-button"
-          onClick={() => setIsDeleteSheetOpen(true)}
-        >
-          <img src={trashIcon} alt="" aria-hidden="true" />
-          <span>Delete Account</span>
-        </button>
+        {onDeleteAccount ? (
+          <button
+            type="button"
+            className="account-info-delete-button"
+            onClick={() => setIsDeleteSheetOpen(true)}
+          >
+            <img src={trashIcon} alt="" aria-hidden="true" />
+            <span>Delete Account</span>
+          </button>
+        ) : null}
       </section>
 
       {isAnySheetOpen ? (

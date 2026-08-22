@@ -39,7 +39,6 @@ function SignupPage({ onBack, onSignupSuccess }: SignupPageProps) {
     false,
     false,
     false,
-    false,
   ])
   const [errors, setErrors] = useState<{
     email: string
@@ -112,10 +111,6 @@ function SignupPage({ onBack, onSignupSuccess }: SignupPageProps) {
     },
     {
       text: 'I agree to receive marketing updates and exclusive offers.',
-      required: false,
-    },
-    {
-      text: 'I agree to receive learning reminders.',
       required: false,
     },
   ]

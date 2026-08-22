@@ -213,7 +213,7 @@ function VerifyEmailPage({ onBack, email, onVerifySuccess }: VerifyEmailPageProp
             </div>
           ))}
         </div>
-        <p className="verify-email-timer" role="timer" aria-live="polite">
+        <p className="verify-email-timer" role="timer" aria-label={`Code expires in ${timerText}`}>
           {timerText}
         </p>
         <div className="verify-email-resend">
@@ -225,7 +225,7 @@ function VerifyEmailPage({ onBack, email, onVerifySuccess }: VerifyEmailPageProp
               ? 'Wrong code, please try again'
               : hasCompletionError
                 ? 'Unable to complete sign up'
-                : 'Don’t receive code?'}
+                : 'Didn’t receive the code?'}
           </p>
           {verifyError && <p className="field-error verify-email-resend-error">{verifyError}</p>}
           {completionError && (

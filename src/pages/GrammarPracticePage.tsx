@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import './GrammarPracticePage.css'
 import exampleRightImage from '../assets/7.png'
 import exampleLeftImage from '../assets/10.png'
@@ -421,6 +421,7 @@ function GrammarPracticePage({
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [revealedAnswers, setRevealedAnswers] = useState<string[]>([])
   const [choiceFeedback, setChoiceFeedback] = useState<ChoiceFeedback | null>(null)
+  const [isHintVisible, setIsHintVisible] = useState(false)
   const [typedAnswer, setTypedAnswer] = useState('')
   const [submittedTypedAnswer, setSubmittedTypedAnswer] = useState('')
   const [makeSentenceAnswer, setMakeSentenceAnswer] = useState('')
@@ -470,6 +471,7 @@ function GrammarPracticePage({
   const listeningDidDragRef = useRef(false)
   const listeningAnswersRef = useRef<Record<number, string>>({})
   const nextGrammarLessonRef = useRef<HTMLElement | null>(null)
+  const nextGrammarDialogRef = useRef<HTMLDivElement | null>(null)
 
   const isFillStep = practiceStep === 'fill'
   const isFillIntroStep = practiceStep === 'fill-intro'
@@ -648,7 +650,19 @@ function GrammarPracticePage({
     listeningTrackOffset -
     listeningQuestionIndexForDisplay * listeningTrackStride +
     listeningDragOffset
-  const progressDotPositions = [3, 21.8, 40.6, 59.4, 78.2, 97]
+  const practiceProgressStepCount = Math.max(practiceStages.length, 1)
+  const practiceProgressIndex =
+    currentStageIndex >= 0 ? currentStageIndex : practiceProgressStepCount - 1
+  const practiceProgressFill =
+    practiceProgressStepCount <= 1
+      ? 100
+      : (practiceProgressIndex / (practiceProgressStepCount - 1)) * 100
+  const progressDotPositions = Array.from({ length: practiceProgressStepCount }, (_, index) =>
+    practiceProgressStepCount <= 1 ? 50 : (index / (practiceProgressStepCount - 1)) * 100,
+  )
+  const currentQuestionPosition =
+    practiceItemCount > 1 ? `, question ${practiceItemIndex + 1} of ${practiceItemCount}` : ''
+  const practiceProgressLabel = `Step ${practiceProgressIndex + 1} of ${practiceProgressStepCount}${currentQuestionPosition}`
   const contentLanguage = toContentLanguage(language)
   const isTranslationRtl = isRtlContentLanguage(contentLanguage)
   // 서버 설명이 있으면 mother language 에 맞는 것을 쓴다.
@@ -831,11 +845,68 @@ function GrammarPracticePage({
     setActiveNextGrammarDialog(null)
     nextGrammarLessonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+  const practiceHintText = useMemo(() => {
+    if (activePractice === null) return ''
+    const answer = activePractice.answers[0] ?? correctAnswer
+    if (answer) return isFreeWritingPractice ? `Example answer: ${answer}` : `Answer hint: ${answer}`
+    if (activePractice.fixedQuestion) return activePractice.fixedQuestion
+    return activePractice.prefix
+  }, [activePractice, correctAnswer, isFreeWritingPractice])
+  const hintButton = practiceHintText ? (
+    <button
+      type="button"
+      className="grammar-practice-hint-button"
+      aria-expanded={isHintVisible}
+      onClick={() => setIsHintVisible((current) => !current)}
+    >
+      Show hint
+    </button>
+  ) : null
+  const hintPanel = isHintVisible && practiceHintText ? (
+    <p className="grammar-practice-hint-text" role="status">
+      {practiceHintText}
+    </p>
+  ) : null
+  const moveReadingQuestion = (direction: 'prev' | 'next') => {
+    if (readingQuestions.length === 0) return
+    setReadingQuestionIndex((current) => {
+      if (direction === 'prev') return Math.max(current - 1, 0)
+      return Math.min(current + 1, readingQuestions.length - 1)
+    })
+  }
+  const moveListeningQuestion = (direction: 'prev' | 'next') => {
+    if (listeningQuestions.length === 0) return
+    setListeningQuestionIndex((current) => {
+      if (direction === 'prev') return Math.max(current - 1, 0)
+      return Math.min(current + 1, listeningQuestions.length - 1)
+    })
+  }
+  const handleReadingQuestionKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      moveReadingQuestion('prev')
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      moveReadingQuestion('next')
+    }
+  }
+  const handleListeningQuestionKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      moveListeningQuestion('prev')
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      moveListeningQuestion('next')
+    }
+  }
   // 한 문항을 끝내고 다음 문항/단계로 넘어갈 때 입력과 채점 결과를 비운다.
   const resetPracticeAnswers = () => {
     setSelectedAnswer('')
     setRevealedAnswers([])
     setChoiceFeedback(null)
+    setIsHintVisible(false)
     setTypedAnswer('')
     setSubmittedTypedAnswer('')
     setMakeSentenceAnswer('')
@@ -1206,6 +1277,11 @@ function GrammarPracticePage({
     return () => window.clearTimeout(feedbackTimer)
   }, [choiceFeedback])
 
+  useEffect(() => {
+    if (!activeNextGrammarDialog) return
+    nextGrammarDialogRef.current?.focus()
+  }, [activeNextGrammarDialog])
+
   const handleReviewSubmit = async () => {
     if (reviewMarkComplete === null) return
 
@@ -1391,18 +1467,20 @@ function GrammarPracticePage({
         )}
 
         {!showPracticeChrome ? null : (
-          <div className="grammar-practice-progress" role="list" aria-label="grammar practice progress">
+          <div className="grammar-practice-progress" role="list" aria-label={`grammar practice progress, ${practiceProgressLabel}`}>
             <span className="grammar-practice-progress-track" aria-hidden="true" />
-            <span className="grammar-practice-progress-fill" style={{ width: '17.5%' }} aria-hidden="true" />
-            {Array.from({ length: 6 }).map((_, index) => (
+            <span className="grammar-practice-progress-fill" style={{ width: `${practiceProgressFill}%` }} aria-hidden="true" />
+            <span className="grammar-practice-sr-only" aria-live="polite">{practiceProgressLabel}</span>
+            {progressDotPositions.map((position, index) => (
               <span
                 key={index}
                 className={`grammar-practice-progress-dot ${
-                  index <= 0 ? 'grammar-practice-progress-dot-past' : 'grammar-practice-progress-dot-upcoming'
+                  index <= practiceProgressIndex ? 'grammar-practice-progress-dot-upcoming' : 'grammar-practice-progress-dot-past'
                 }`}
-                style={{ left: `${progressDotPositions[index]}%` }}
+                style={{ left: `${position}%` }}
                 role="listitem"
-                aria-current={index === 0 ? 'step' : undefined}
+                aria-label={`Step ${index + 1} of ${practiceProgressStepCount}`}
+                aria-current={index === practiceProgressIndex ? 'step' : undefined}
               />
             ))}
           </div>
@@ -1875,6 +1953,11 @@ function GrammarPracticePage({
               </section>
               <div
                 className="grammar-practice-listening-question-viewport"
+                role="group"
+                aria-label="Listening questions"
+                aria-describedby="listening-question-position"
+                tabIndex={0}
+                onKeyDown={handleListeningQuestionKeyDown}
               onPointerDown={(event) => {
                 listeningDragStartXRef.current = event.clientX
                 listeningDragOffsetRef.current = 0
@@ -1926,6 +2009,9 @@ function GrammarPracticePage({
                 listeningDidDragRef.current = false
               }}
               >
+                <span id="listening-question-position" className="grammar-practice-sr-only" aria-live="polite">
+                  Listening question {Math.min(listeningQuestionIndexForDisplay + 1, Math.max(listeningQuestions.length, 1))} of {Math.max(listeningQuestions.length, 1)}
+                </span>
                 <div
                   className={`grammar-practice-listening-question-track ${
                     isListeningDragging ? 'is-dragging' : ''
@@ -1943,17 +2029,22 @@ function GrammarPracticePage({
                       className="grammar-practice-listening-question-slide"
                     >
                       {hasListeningResult ? (
-                        <span
-                          className={`grammar-practice-reading-result-art ${
-                            listeningGrade
-                              ? 'grammar-practice-reading-result-art-correct'
-                              : 'grammar-practice-reading-result-art-wrong'
-                          }`}
-                          aria-hidden="true"
-                        >
-                          <span className="grammar-practice-reading-result-mark" />
-                          <img src={listeningGrade ? choiceCorrectImage : choiceWrongImage} alt="" />
-                        </span>
+                        <>
+                          <span
+                            className={`grammar-practice-reading-result-art ${
+                              listeningGrade
+                                ? 'grammar-practice-reading-result-art-correct'
+                                : 'grammar-practice-reading-result-art-wrong'
+                            }`}
+                            aria-hidden="true"
+                          >
+                            <span className="grammar-practice-reading-result-mark" />
+                            <img src={listeningGrade ? choiceCorrectImage : choiceWrongImage} alt="" />
+                          </span>
+                          <span className="grammar-practice-answer-feedback" role="status">
+                            {listeningGrade ? 'Good Job!' : 'Wrong'}
+                          </span>
+                        </>
                       ) : null}
                       <div className="grammar-practice-listening-question-card">
                         <p className="grammar-practice-listening-question-title">{question.title}</p>
@@ -2028,6 +2119,28 @@ function GrammarPracticePage({
                     : '이 수업에는 듣기 문제가 없어요. 대본을 확인한 뒤 다음으로 넘어가세요.'}
                 </p>
               ) : null}
+              {listeningQuestions.length > 1 ? (
+                <div className="grammar-practice-question-controls">
+                  <button
+                    type="button"
+                    className="grammar-practice-question-control"
+                    disabled={listeningQuestionIndexForDisplay <= 0}
+                    onClick={() => moveListeningQuestion('prev')}
+                    aria-label="Previous listening question"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="grammar-practice-question-control"
+                    disabled={listeningQuestionIndexForDisplay >= listeningQuestions.length - 1}
+                    onClick={() => moveListeningQuestion('next')}
+                    aria-label="Next listening question"
+                  >
+                    ›
+                  </button>
+                </div>
+              ) : null}
               <div className="grammar-practice-listening-dots" aria-label="listening question progress">
                 {listeningQuestions.map((question, index) => (
                   <span
@@ -2037,6 +2150,8 @@ function GrammarPracticePage({
                         ? 'grammar-practice-listening-dot-active'
                         : ''
                     }`}
+                    aria-label={`Question ${index + 1} of ${listeningQuestions.length}`}
+                    aria-current={index === listeningQuestionIndexForDisplay ? 'step' : undefined}
                   />
                 ))}
               </div>
@@ -2133,6 +2248,11 @@ function GrammarPracticePage({
             </section>
             <div
               className="grammar-practice-reading-question-viewport"
+              role="group"
+              aria-label="Reading questions"
+              aria-describedby="reading-question-position"
+              tabIndex={0}
+              onKeyDown={handleReadingQuestionKeyDown}
               onPointerDown={(e) => {
                 readingDragStartXRef.current = e.clientX
                 readingDragOffsetRef.current = 0
@@ -2177,6 +2297,9 @@ function GrammarPracticePage({
                 readingDidDragRef.current = false
               }}
             >
+              <span id="reading-question-position" className="grammar-practice-sr-only" aria-live="polite">
+                Reading question {Math.min(readingQuestionIndex + 1, Math.max(readingQuestions.length, 1))} of {Math.max(readingQuestions.length, 1)}
+              </span>
               <div
                 className={`grammar-practice-reading-question-track ${isReadingDragging ? 'is-dragging' : ''}`}
                 style={{ transform: `translateX(${readingTrackTranslate}px)` }}
@@ -2192,20 +2315,25 @@ function GrammarPracticePage({
                   return (
                     <section key={question.questionId} className="grammar-practice-reading-question-slide">
                       {hasReadingChoiceResult ? (
-                        <span
-                          className={`grammar-practice-reading-result-art ${
-                            isReadingChoiceCorrect
-                              ? 'grammar-practice-reading-result-art-correct'
-                              : 'grammar-practice-reading-result-art-wrong'
-                          }`}
-                          aria-hidden="true"
-                        >
-                          <span className="grammar-practice-reading-result-mark" />
-                          <img
-                            src={isReadingChoiceCorrect ? choiceCorrectImage : choiceWrongImage}
-                            alt=""
-                          />
-                        </span>
+                        <>
+                          <span
+                            className={`grammar-practice-reading-result-art ${
+                              isReadingChoiceCorrect
+                                ? 'grammar-practice-reading-result-art-correct'
+                                : 'grammar-practice-reading-result-art-wrong'
+                            }`}
+                            aria-hidden="true"
+                          >
+                            <span className="grammar-practice-reading-result-mark" />
+                            <img
+                              src={isReadingChoiceCorrect ? choiceCorrectImage : choiceWrongImage}
+                              alt=""
+                            />
+                          </span>
+                          <span className="grammar-practice-answer-feedback" role="status">
+                            {isReadingChoiceCorrect ? 'Good Job!' : 'Wrong'}
+                          </span>
+                        </>
                       ) : null}
                       <div
                         className={`grammar-practice-reading-question-card ${
@@ -2319,11 +2447,35 @@ function GrammarPracticePage({
                   : '이 수업에는 읽기 문제가 없어요. 지문을 확인한 뒤 다음으로 넘어가세요.'}
               </p>
             ) : null}
+            {readingQuestions.length > 1 ? (
+              <div className="grammar-practice-question-controls">
+                <button
+                  type="button"
+                  className="grammar-practice-question-control"
+                  disabled={readingQuestionIndex <= 0}
+                  onClick={() => moveReadingQuestion('prev')}
+                  aria-label="Previous reading question"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="grammar-practice-question-control"
+                  disabled={readingQuestionIndex >= readingQuestions.length - 1}
+                  onClick={() => moveReadingQuestion('next')}
+                  aria-label="Next reading question"
+                >
+                  ›
+                </button>
+              </div>
+            ) : null}
             <div className="grammar-practice-reading-dots" aria-label="reading question progress">
               {readingQuestions.map((question, index) => (
                 <span
                   key={question.questionId}
                   className={`grammar-practice-reading-dot ${index === readingQuestionIndex ? 'grammar-practice-reading-dot-active' : ''}`}
+                  aria-label={`Question ${index + 1} of ${readingQuestions.length}`}
+                  aria-current={index === readingQuestionIndex ? 'step' : undefined}
                 />
               ))}
             </div>
@@ -2458,8 +2610,9 @@ function GrammarPracticePage({
               </div>
             </section>
             <div className="grammar-practice-learn-more-wrap">
-              <button type="button" className="grammar-practice-learn-more-button">Show hint</button>
+              {hintButton}
             </div>
+            {hintPanel}
             {showMakeResultPanel ? (
               <aside
                 className={`grammar-practice-result-panel grammar-practice-make-result-panel ${
@@ -2526,8 +2679,9 @@ function GrammarPracticePage({
             {isFillStep ? (
               <>
                 <div className="grammar-practice-learn-more-wrap">
-                  <button type="button" className="grammar-practice-learn-more-button">Show hint</button>
+                  {hintButton}
                 </div>
+                {hintPanel}
                 {showFillResultPanel ? (
                   <aside
                     className={`grammar-practice-fill-result-panel ${
@@ -2595,8 +2749,9 @@ function GrammarPracticePage({
                   <p className="grammar-practice-status">{checkAnswer.error.message}</p>
                 )}
                 <div className="grammar-practice-hint-wrap">
-                  <button type="button" className="grammar-practice-hint-button">Show hint</button>
+                  {hintButton}
                 </div>
+                {hintPanel}
                 {showChoiceFeedbackPanel ? (
                   <aside
                     className={`grammar-practice-choice-result-panel ${
@@ -2683,6 +2838,7 @@ function GrammarPracticePage({
             onClick={() => setActiveNextGrammarDialog(null)}
           >
             <div
+              ref={nextGrammarDialogRef}
               className={`grammar-practice-next-grammar-note-dialog grammar-practice-next-grammar-note-dialog-${
                 activeNextGrammarDialog.kind === 'annotation'
                   ? activeNextGrammarDialog.annotations[activeNextGrammarDialog.index]?.type ===
@@ -2694,7 +2850,11 @@ function GrammarPracticePage({
               role="dialog"
               aria-modal="true"
               aria-labelledby="next-grammar-note-title"
+              tabIndex={-1}
               onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setActiveNextGrammarDialog(null)
+              }}
             >
               {activeNextGrammarDialog.kind === 'annotation'
                 ? (() => {

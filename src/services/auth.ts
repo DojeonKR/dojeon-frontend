@@ -383,8 +383,13 @@ export async function signup(payload: SignupRequest): Promise<AuthTokenData> {
       'Idempotency-Key': crypto.randomUUID(),
     },
     body: JSON.stringify({
-      ...payload,
       email: normalizedEmail,
+      password: payload.password,
+      verifyToken: payload.verifyToken,
+      isTermsAgreed: payload.isTermsAgreed,
+      isPrivacyAgreed: payload.isPrivacyAgreed,
+      isAgeVerified: payload.isAgeVerified,
+      isMarketingAgreed: payload.isMarketingAgreed,
     } satisfies SignupRequest),
   })
 }
