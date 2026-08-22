@@ -48,7 +48,7 @@ import {
   type AuthSession,
   type AuthTokenData,
 } from './services/auth'
-import { getEmailFromGoogleIdToken, requestGoogleIdToken } from './services/googleIdentity'
+import { getEmailFromGoogleIdToken } from './services/googleIdentity'
 
 const ONBOARDING_COMPLETED_KEY = 'dojeon:onboarding.completed'
 const ONBOARDING_USERNAME_KEY = 'dojeon:onboarding.username'
@@ -269,6 +269,13 @@ const getInitialVocabularyCardIndex = () => {
 
   const card = Number.parseInt(getDevSearchParams().get('card') ?? '', 10)
   return Number.isFinite(card) ? Math.max(0, card - 1) : undefined
+}
+
+const getDevPreviewCourseOrder = () => {
+  if (getDevPreviewScreen() !== 'class') return undefined
+
+  const course = Number.parseInt(getDevSearchParams().get('course') ?? '', 10)
+  return Number.isFinite(course) ? Math.max(1, course) : undefined
 }
 
 const getScreenFromLocation = (authSession: AuthSession | null): Screen | null => {
@@ -914,6 +921,8 @@ function App() {
         />
       ) : visibleScreen === 'class' ? (
         <ClassPage
+          preferFallbackContent={isDevPreview}
+          defaultOpenCourseOrder={getDevPreviewCourseOrder()}
           onUnauthorized={handleUnauthorized}
           onOpenHome={() => {
             setScreen('home')
@@ -1310,8 +1319,7 @@ function App() {
             setPendingSignup(null)
             showSplash()
           }}
-          onGoogleLogin={async () => {
-            const idToken = await requestGoogleIdToken()
+          onGoogleLogin={async (idToken) => {
             const tokenData = await loginWithGoogle({ idToken })
             const googleEmail = getEmailFromGoogleIdToken(idToken)
 

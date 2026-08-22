@@ -2,22 +2,23 @@ interface GoogleCredentialResponse {
   credential?: string
 }
 
-interface GooglePromptMomentNotification {
-  isNotDisplayed?: () => boolean
-  isSkippedMoment?: () => boolean
-  isDismissedMoment?: () => boolean
-  getNotDisplayedReason?: () => string
-  getSkippedReason?: () => string
-  getDismissedReason?: () => string
-}
-
 interface GoogleAccountsId {
   initialize: (config: {
     client_id: string
     callback: (response: GoogleCredentialResponse) => void
     cancel_on_tap_outside?: boolean
   }) => void
-  prompt: (momentListener?: (notification: GooglePromptMomentNotification) => void) => void
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      type?: 'standard' | 'icon'
+      theme?: 'outline' | 'filled_blue' | 'filled_black'
+      size?: 'large' | 'medium' | 'small'
+      text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin'
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square'
+      width?: number | string
+    },
+  ) => void
 }
 
 declare global {
@@ -91,7 +92,11 @@ export function getEmailFromGoogleIdToken(idToken: string): string {
   }
 }
 
-export async function requestGoogleIdToken(): Promise<string> {
+export async function renderGoogleButton(
+  container: HTMLElement,
+  onCredential: (idToken: string) => void,
+  onError: (error: GoogleIdentityError) => void,
+): Promise<() => void> {
   if (!googleClientId) {
     throw new GoogleIdentityError('Google login is not configured.')
   }
@@ -103,60 +108,32 @@ export async function requestGoogleIdToken(): Promise<string> {
     throw new GoogleIdentityError('Google sign-in is not available.')
   }
 
-  return new Promise((resolve, reject) => {
-    let settled = false
-
-    const settle = (callback: () => void) => {
-      if (settled) return
-      settled = true
-      window.clearTimeout(timeoutId)
-      callback()
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      settle(() => reject(new GoogleIdentityError('Google sign-in timed out. Please try again.')))
-    }, 60000)
-
-    googleAccountsId.initialize({
-      client_id: googleClientId,
-      cancel_on_tap_outside: true,
-      callback: (response) => {
-        if (response.credential) {
-          settle(() => resolve(response.credential as string))
-          return
-        }
-
-        settle(() => reject(new GoogleIdentityError('Google sign-in did not return a token.')))
-      },
-    })
-
-    googleAccountsId.prompt((notification) => {
-      if (settled) return
-
-      if (notification.isNotDisplayed?.()) {
-        const reason = notification.getNotDisplayedReason?.()
-        settle(() => reject(new GoogleIdentityError(
-          reason ? `Google sign-in is not available: ${reason}.` : 'Google sign-in is not available.',
-        )))
+  let isActive = true
+  googleAccountsId.initialize({
+    client_id: googleClientId,
+    callback: (response) => {
+      if (!isActive) return
+      if (response.credential) {
+        onCredential(response.credential)
         return
       }
 
-      if (notification.isSkippedMoment?.()) {
-        const reason = notification.getSkippedReason?.()
-        settle(() => reject(new GoogleIdentityError(
-          reason ? `Google sign-in was skipped: ${reason}.` : 'Google sign-in was skipped.',
-        )))
-        return
-      }
-
-      if (notification.isDismissedMoment?.()) {
-        const reason = notification.getDismissedReason?.()
-        if (reason === 'credential_returned') return
-
-        settle(() => reject(new GoogleIdentityError(
-          reason ? `Google sign-in was dismissed: ${reason}.` : 'Google sign-in was dismissed.',
-        )))
-      }
-    })
+      onError(new GoogleIdentityError('Google sign-in did not return a token.'))
+    },
   })
+
+  container.replaceChildren()
+  googleAccountsId.renderButton(container, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'rectangular',
+    width: 360,
+  })
+
+  return () => {
+    isActive = false
+    container.replaceChildren()
+  }
 }

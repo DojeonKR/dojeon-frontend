@@ -6,6 +6,7 @@ import fileIcon from '../assets/file.svg'
 import bookOpenIcon from '../assets/book-open.svg'
 import profileIcon from '../assets/user.svg'
 import { useCoursesDashboard } from '../hooks/useCoursesDashboard.ts'
+import type { DashboardCourse } from '../types/dasboard.types.ts'
 
 const tabs = [
   { icon: homeIcon, label: 'HOME' },
@@ -17,11 +18,18 @@ const tabs = [
 
 const progressDotInset = 10
 const progressDotStopGap = 8
+const minimumCourseCount = 5
+const fallbackProgressPercent = 18
 const trialTargetDays = 7
 const trialLabel = `${trialTargetDays}-day Trial available`
 
-function getClassProgressFillWidth(activeCourseIndex: number, dotCount: number): string {
+function getClassProgressFillWidth(
+  activeCourseIndex: number,
+  dotCount: number,
+  progressPercent: number,
+): string {
   if (activeCourseIndex < 0) return '0%'
+  if (dotCount <= 1) return `${Math.min(100, Math.max(0, progressPercent))}%`
   const targetDotIndex = activeCourseIndex + 1
   if (targetDotIndex >= dotCount - 1) return '100%'
 
@@ -30,7 +38,57 @@ function getClassProgressFillWidth(activeCourseIndex: number, dotCount: number):
   }) * ${targetDotIndex} - ${progressDotStopGap}px)`
 }
 
+function createFallbackLessons(courseOrder: number): DashboardCourse['lessons'] {
+  return Array.from({ length: 5 }, (_, index) => ({
+    lessonId: -(courseOrder * 100 + index + 1),
+    title: 'Vocabulary',
+    subtitle: null,
+    orderNum: index + 1,
+    sectionCount: 1,
+    completedSectionCount: 1,
+    progressPercent: 100,
+    isCompleted: true,
+  }))
+}
+
+function createFallbackCourse(courseOrder: number): DashboardCourse {
+  return {
+    courseId: -courseOrder,
+    title: `Course ${courseOrder}`,
+    description: '',
+    orderNum: courseOrder,
+    isActive: true,
+    totalSections: 5,
+    completedSections: courseOrder === 1 ? 5 : 0,
+    overallProgressPercent: courseOrder === 1 ? 100 : 0,
+    totalStaySeconds: 0,
+    lessons: createFallbackLessons(courseOrder),
+  }
+}
+
+function getDisplayCourses(apiCourses: DashboardCourse[]): DashboardCourse[] {
+  const coursesByOrder = new Map<number, DashboardCourse>()
+  for (const course of apiCourses) {
+    coursesByOrder.set(course.orderNum || course.courseId, course)
+  }
+
+  return Array.from({ length: Math.max(minimumCourseCount, apiCourses.length) }, (_, index) => {
+    const courseOrder = index + 1
+    return coursesByOrder.get(courseOrder) ?? createFallbackCourse(courseOrder)
+  })
+}
+
+function getClassProgressDotLeft(index: number, dotCount: number): string {
+  if (dotCount <= 1) return '50%'
+
+  return `calc(${progressDotInset}px + ((100% - ${progressDotInset * 2}px) / ${
+    dotCount - 1
+  }) * ${index})`
+}
+
 interface ClassPageProps {
+  preferFallbackContent?: boolean
+  defaultOpenCourseOrder?: number
   onOpenHome: () => void
   onOpenPractice: () => void
   onOpenNotebook: () => void
@@ -40,6 +98,8 @@ interface ClassPageProps {
 }
 
 function ClassPage({
+  preferFallbackContent = false,
+  defaultOpenCourseOrder,
   onOpenHome,
   onOpenPractice,
   onOpenNotebook,
@@ -52,7 +112,11 @@ function ClassPage({
 
   const resumeBanner = data?.resumeBanner ?? null
   const apiCourses = useMemo(() => data?.courses ?? [], [data])
-  const courses = apiCourses
+  const courses = useMemo(
+    () => (preferFallbackContent ? getDisplayCourses(apiCourses) : apiCourses),
+    [apiCourses, preferFallbackContent],
+  )
+  const isUsingFallbackCourses = preferFallbackContent && apiCourses.length === 0
   const isUnauthorized = error?.status === 401 || error?.status === 403
 
   useEffect(() => {
@@ -60,29 +124,38 @@ function ClassPage({
   }, [isUnauthorized, onUnauthorized])
 
   const progressPercent = useMemo(() => {
+    if (isUsingFallbackCourses) return fallbackProgressPercent
     if (!resumeBanner) return 0
     const activeCourse = courses.find((c) => c.courseId === resumeBanner.courseId)
     return activeCourse?.overallProgressPercent ?? resumeBanner.overallProgressPercent ?? 0
-  }, [courses, resumeBanner])
+  }, [courses, isUsingFallbackCourses, resumeBanner])
 
   const activeCourseIndex = (() => {
     if (!courses.length) return -1
-    if (!resumeBanner) return 0
+    if (isUsingFallbackCourses || !resumeBanner) return 0
 
     const index = courses.findIndex((course) => course.courseId === resumeBanner.courseId)
     return index >= 0 ? index : 0
   })()
   const classProgressDotCount = Math.max(1, courses.length)
-  const progressFillWidth = getClassProgressFillWidth(activeCourseIndex, classProgressDotCount)
+  const progressFillWidth = getClassProgressFillWidth(
+    activeCourseIndex,
+    classProgressDotCount,
+    progressPercent,
+  )
 
   const openCourseIds = useMemo(() => {
     const open = new Set<number>()
+    if (defaultOpenCourseOrder !== undefined && !manuallyToggled.size) {
+      const defaultCourse = courses.find((course) => course.orderNum === defaultOpenCourseOrder)
+      if (defaultCourse) open.add(defaultCourse.courseId)
+    }
     for (const [courseId, isOpen] of manuallyToggled) {
       if (isOpen) open.add(courseId)
       else open.delete(courseId)
     }
     return open
-  }, [manuallyToggled])
+  }, [courses, defaultOpenCourseOrder, manuallyToggled])
 
   const toggleCourse = (courseId: number) => {
     const currentlyOpen = openCourseIds.has(courseId)
@@ -93,7 +166,7 @@ function ClassPage({
     })
   }
 
-  if (loading) {
+  if (loading && !preferFallbackContent) {
     return (
       <main className="class-screen">
         <section className="class-content">
@@ -105,7 +178,7 @@ function ClassPage({
 
   if (isUnauthorized) return null
 
-  if (error) {
+  if (error && !preferFallbackContent) {
     return (
       <main className="class-screen">
         <section className="class-content">
@@ -139,11 +212,7 @@ function ClassPage({
                     ? 'class-progress-dot-past'
                     : 'class-progress-dot-upcoming'
                 }`}
-                style={{
-                  left: `calc(${progressDotInset}px + ((100% - ${progressDotInset * 2}px) / ${
-                    classProgressDotCount - 1
-                  }) * ${index})`,
-                }}
+                style={{ left: getClassProgressDotLeft(index, classProgressDotCount) }}
                 role="listitem"
               />
             ))}

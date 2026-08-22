@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './LoginPage.css'
 import loginCharacter from '../assets/9.png'
 import { LOGIN_CREDENTIALS_ERROR_MESSAGE } from '../services/auth'
+import { renderGoogleButton } from '../services/googleIdentity'
 
 interface LoginPageProps {
   onSignUp: () => void
   onLogin?: (credentials: { email: string; password: string }) => Promise<void>
-  onGoogleLogin?: () => Promise<void>
+  onGoogleLogin?: (idToken: string) => Promise<void>
 }
 
 function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
@@ -14,6 +15,58 @@ function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const googleButtonRef = useRef<HTMLDivElement>(null)
+  const onGoogleLoginRef = useRef(onGoogleLogin)
+  const isSubmittingRef = useRef(false)
+
+  useEffect(() => {
+    onGoogleLoginRef.current = onGoogleLogin
+  }, [onGoogleLogin])
+
+  useEffect(() => {
+    const container = googleButtonRef.current
+    if (!container || !onGoogleLoginRef.current) return
+
+    let isMounted = true
+    let cleanup = () => {}
+    const showGoogleError = (error: Error) => {
+      if (isMounted) setLoginError(error.message)
+    }
+
+    void renderGoogleButton(
+      container,
+      async (idToken) => {
+        if (!isMounted || isSubmittingRef.current) return
+
+        isSubmittingRef.current = true
+        setIsSubmitting(true)
+        setLoginError('')
+        try {
+          await onGoogleLoginRef.current?.(idToken)
+        } catch (error) {
+          showGoogleError(
+            error instanceof Error
+              ? error
+              : new Error('Unable to log in with Google. Please try again.'),
+          )
+        } finally {
+          isSubmittingRef.current = false
+          if (isMounted) setIsSubmitting(false)
+        }
+      },
+      showGoogleError,
+    )
+      .then((dispose) => {
+        cleanup = dispose
+        if (!isMounted) cleanup()
+      })
+      .catch(showGoogleError)
+
+    return () => {
+      isMounted = false
+      cleanup()
+    }
+  }, [])
 
   return (
     <main className="login-screen">
@@ -40,10 +93,11 @@ function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
         onSubmit={async (e) => {
           e.preventDefault()
 
-          if (!onLogin || isSubmitting) {
+          if (!onLogin || isSubmitting || isSubmittingRef.current) {
             return
           }
 
+          isSubmittingRef.current = true
           setIsSubmitting(true)
           setLoginError('')
 
@@ -59,6 +113,7 @@ function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
                 : LOGIN_CREDENTIALS_ERROR_MESSAGE,
             )
           } finally {
+            isSubmittingRef.current = false
             setIsSubmitting(false)
           }
         }}
@@ -101,30 +156,11 @@ function LoginPage({ onSignUp, onLogin, onGoogleLogin }: LoginPageProps) {
           {isSubmitting ? 'LOGGING IN...' : 'LOG IN'}
         </button>
 
-        <button
-          type="button"
-          className="btn btn-ghost google-btn"
-          disabled={isSubmitting}
-          onClick={async () => {
-            if (!onGoogleLogin || isSubmitting) return
-
-            setIsSubmitting(true)
-            setLoginError('')
-            try {
-              await onGoogleLogin()
-            } catch (error) {
-              setLoginError(
-                error instanceof Error
-                  ? error.message
-                  : 'Unable to log in with Google. Please try again.',
-              )
-            } finally {
-              setIsSubmitting(false)
-            }
-          }}
-        >
-          Log in with Google
-        </button>
+        <div
+          ref={googleButtonRef}
+          className="google-btn"
+          aria-label="Log in with Google"
+        />
       </form>
 
       <p className="signup-copy">

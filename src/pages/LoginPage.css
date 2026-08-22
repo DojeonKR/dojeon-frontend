@@ -162,6 +162,11 @@
 }
 
 .google-btn {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--dojeon-color-primary);
   margin-top: 10px;
   background: var(--dojeon-color-white);
