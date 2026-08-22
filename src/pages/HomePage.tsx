@@ -86,9 +86,9 @@ function HomePage({
   const progressPercent =
     activeGoal.total !== null && activeGoal.current !== null && activeGoal.total > 0
       ? Math.min(100, Math.max(0, (activeGoal.current / activeGoal.total) * 100))
-      : 0
-  const shortFillPercent = progressPercent
-  const bubbleLeft = Math.min(98, Math.max(2, progressPercent))
+      : null
+  const shortFillPercent = progressPercent ?? 0
+  const bubbleLeft = progressPercent === null ? 2 : Math.min(98, Math.max(2, progressPercent))
 
   if (loading && !data) {
     return (
@@ -154,14 +154,21 @@ function HomePage({
           <div className="streak-indicators" role="list" aria-label="Daily streak progress">
             <div className="streak-track">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                const isComplete = weeklyAttendance[index] === true
+                const attendance = weeklyAttendance[index]
+                const isComplete = attendance === true
+                const attendanceLabel =
+                  typeof attendance !== 'boolean'
+                    ? 'unavailable'
+                    : isComplete
+                      ? 'completed'
+                      : 'not completed'
 
                 return (
                   <span
                     key={`${day}-${index}`}
                     className={`streak-dot ${isComplete ? 'filled' : ''}`}
                     role="listitem"
-                    aria-label={`${day} ${isComplete ? 'completed' : 'not completed'}`}
+                    aria-label={`${day} ${attendanceLabel}`}
                   >
                     {isComplete ? day : null}
                   </span>
@@ -209,7 +216,8 @@ function HomePage({
                     role="progressbar"
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    aria-valuenow={Math.round(progressPercent)}
+                    aria-valuenow={progressPercent === null ? undefined : Math.round(progressPercent)}
+                    aria-valuetext={progressPercent === null ? 'Progress unavailable' : `${Math.round(progressPercent)}%`}
                   >
                     <div
                       className="goal-progress-fill"

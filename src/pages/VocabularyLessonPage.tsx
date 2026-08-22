@@ -102,6 +102,7 @@ function VocabularyLessonPage({
   const pointerStartRef = useRef<{ pointerId: number; clientX: number } | null>(null)
   const shouldIgnoreCardClickRef = useRef(false)
   const promptCancelButtonRef = useRef<HTMLButtonElement | null>(null)
+  const personalListPromptTriggerRef = useRef<HTMLElement | null>(null)
 
   // Base scrap state derived directly from API data (no useEffect)
   const baseScrapedIds = useMemo(
@@ -271,6 +272,8 @@ function VocabularyLessonPage({
   }
 
   const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget) return
+
     if (event.key === 'ArrowLeft') {
       event.preventDefault()
       moveCard('prev')
@@ -376,8 +379,57 @@ function VocabularyLessonPage({
         ? 'Do you want to remove it from your personal list?'
         : 'Do you want to add it to your personal list?'
 
+  const openPersonalListPrompt = (prompt: PersonalListPrompt, trigger: HTMLElement) => {
+    personalListPromptTriggerRef.current = trigger
+    setPersonalListPrompt(prompt)
+  }
+
+  const closePersonalListPrompt = () => {
+    setPersonalListPrompt(null)
+  }
+
+  const handlePersonalListModalKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closePersonalListPrompt()
+      return
+    }
+
+    if (event.key !== 'Tab') return
+
+    const focusableElements = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null)
+
+    if (focusableElements.length === 0) {
+      event.preventDefault()
+      return
+    }
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+    const isOutsideDialog = !event.currentTarget.contains(document.activeElement)
+
+    if (event.shiftKey && (document.activeElement === firstElement || isOutsideDialog)) {
+      event.preventDefault()
+      lastElement.focus()
+    } else if (!event.shiftKey && (document.activeElement === lastElement || isOutsideDialog)) {
+      event.preventDefault()
+      firstElement.focus()
+    }
+  }
+
   useEffect(() => {
-    if (promptWord) promptCancelButtonRef.current?.focus()
+    if (promptWord) {
+      promptCancelButtonRef.current?.focus()
+      return
+    }
+
+    const trigger = personalListPromptTriggerRef.current
+    if (trigger?.isConnected) trigger.focus()
+    personalListPromptTriggerRef.current = null
   }, [promptWord])
 
   const renderPersonalListIcon = (isSaved: boolean) => {
@@ -673,7 +725,10 @@ function VocabularyLessonPage({
                                 }}
                                 onClick={(event) => {
                                   event.stopPropagation()
-                                  setPersonalListPrompt({ wordId: entry.item.id, source: 'card' })
+                                  openPersonalListPrompt(
+                                    { wordId: entry.item.id, source: 'card' },
+                                    event.currentTarget,
+                                  )
                                 }}
                                 aria-label={
                                   isSaved
@@ -770,7 +825,10 @@ function VocabularyLessonPage({
                             }`}
                             onClick={(event) => {
                               event.stopPropagation()
-                              setPersonalListPrompt({ wordId: item.id, source: 'table' })
+                              openPersonalListPrompt(
+                                { wordId: item.id, source: 'table' },
+                                event.currentTarget,
+                              )
                             }}
                             aria-label={
                               isSaved
@@ -865,7 +923,7 @@ function VocabularyLessonPage({
         <div
           className="vocabulary-lesson-modal-backdrop"
           role="presentation"
-          onClick={() => setPersonalListPrompt(null)}
+          onClick={closePersonalListPrompt}
         >
           <section
             className="vocabulary-lesson-modal"
@@ -877,9 +935,7 @@ function VocabularyLessonPage({
                 : 'Confirm addition to personal list'
             }
             onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') setPersonalListPrompt(null)
-            }}
+            onKeyDown={handlePersonalListModalKeyDown}
           >
             <p className="vocabulary-lesson-modal-copy">
               {promptCopy}
@@ -889,7 +945,7 @@ function VocabularyLessonPage({
                 ref={promptCancelButtonRef}
                 type="button"
                 className="vocabulary-lesson-modal-button vocabulary-lesson-modal-button-secondary"
-                onClick={() => setPersonalListPrompt(null)}
+                onClick={closePersonalListPrompt}
               >
                 NO
               </button>
@@ -900,7 +956,7 @@ function VocabularyLessonPage({
                 onClick={() => {
                   if (isPromptWordPending) return
                   void handleTogglePersonalList(promptWord.id)
-                  setPersonalListPrompt(null)
+                  closePersonalListPrompt()
                 }}
               >
                 YES

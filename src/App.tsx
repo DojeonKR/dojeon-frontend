@@ -362,6 +362,7 @@ function App() {
   } | null>(null)
   const [settingBackScreen, setSettingBackScreen] = useState<'home' | 'profile-main'>('home')
   const restoringHistoryRef = useRef(false)
+  const replaceNextHistoryRef = useRef(false)
   const hasInitializedHistoryRef = useRef(false)
   const {
     data: userMeData,
@@ -407,8 +408,9 @@ function App() {
     setAuthSession(null)
     setPendingSignup(null)
     setSettingBackScreen('home')
+    if (screen !== 'login') replaceNextHistoryRef.current = true
     setScreen('login')
-  }, [changeUserPassword, clearAccountScopedQueries, updateUserMe])
+  }, [changeUserPassword, clearAccountScopedQueries, screen, updateUserMe])
 
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
@@ -425,13 +427,25 @@ function App() {
     const handlePopState = () => {
       const nextScreen = getScreenFromLocation(getStoredAuthSession())
       if (!nextScreen) return
+
+      if (nextScreen === screen) {
+        const params = new URLSearchParams(window.location.search)
+        params.set('screen', nextScreen)
+        window.history.replaceState(
+          { screen: nextScreen },
+          '',
+          `${window.location.pathname}?${params.toString()}${window.location.hash}`,
+        )
+        return
+      }
+
       restoringHistoryRef.current = true
       setScreen(nextScreen)
     }
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [isDevPreview])
+  }, [isDevPreview, screen])
 
   useEffect(() => {
     if (isDevPreview) return
@@ -443,11 +457,20 @@ function App() {
     if (!hasInitializedHistoryRef.current) {
       window.history.replaceState({ screen }, '', nextUrl)
       hasInitializedHistoryRef.current = true
+      replaceNextHistoryRef.current = false
       return
     }
 
     if (restoringHistoryRef.current) {
       restoringHistoryRef.current = false
+      window.history.replaceState({ screen }, '', nextUrl)
+      replaceNextHistoryRef.current = false
+      return
+    }
+
+    if (replaceNextHistoryRef.current) {
+      replaceNextHistoryRef.current = false
+      window.history.replaceState({ screen }, '', nextUrl)
       return
     }
 
@@ -474,6 +497,7 @@ function App() {
 
   const showSplash = () => {
     setMinSplashElapsed(false)
+    if (screen !== 'splash') replaceNextHistoryRef.current = true
     setScreen('splash')
   }
 
@@ -548,7 +572,10 @@ function App() {
     }
 
     if (!authSession) {
-      const timer = window.setTimeout(() => setScreen('login'), 0)
+      const timer = window.setTimeout(() => {
+        replaceNextHistoryRef.current = true
+        setScreen('login')
+      }, 0)
       return () => window.clearTimeout(timer)
     }
 
@@ -565,10 +592,10 @@ function App() {
       return
     }
 
-    const timer = window.setTimeout(
-      () => setScreen(hasCompletedOnboarding ? 'home' : 'onboarding'),
-      0,
-    )
+    const timer = window.setTimeout(() => {
+      replaceNextHistoryRef.current = true
+      setScreen(hasCompletedOnboarding ? 'home' : 'onboarding')
+    }, 0)
     return () => window.clearTimeout(timer)
   }, [
     authSession,
@@ -896,6 +923,7 @@ function App() {
               dailyGoal: savedDailyGoal,
               koreanGoal: savedKoreanGoal,
             })
+            replaceNextHistoryRef.current = true
             setScreen('home')
           }}
         />

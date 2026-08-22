@@ -294,9 +294,9 @@ function VocabularyPage({ language, onBack }: VocabularyPageProps) {
               type="button"
               className="vocabulary-sort-button"
               onClick={() => setIsRecentSort((prev) => !prev)}
-              aria-label={isRecentSort ? 'Sort oldest first' : 'Sort newest first'}
+              aria-label={isRecentSort ? 'Sort oldest added first' : 'Sort newest added first'}
             >
-              <span>{isRecentSort ? 'Recently viewed' : 'Oldest viewed'}</span>
+              <span>{isRecentSort ? 'Recently added' : 'Oldest added'}</span>
               <svg
                 className={`vocabulary-sort-icon ${isRecentSort ? 'is-recent' : 'is-alt'}`}
                 width="18"

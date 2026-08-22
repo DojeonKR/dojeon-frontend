@@ -135,11 +135,24 @@
     --dojeon-color-gray-700: #e5e7eb;
     --dojeon-color-gray-800: #f3f4f6;
     --dojeon-color-gray-900: #ffffff;
+    --dojeon-color-primary-50: #241b2a;
+    --dojeon-color-primary-100: #33243d;
+    --dojeon-color-primary-200: #5b426d;
+    --dojeon-color-primary-300: #a98ac0;
+    --dojeon-color-primary-400: #c7a7da;
+    --dojeon-color-primary-500: #c084fc;
+    --dojeon-color-primary-600: #b98bd3;
+    --dojeon-color-primary-700: #d3b7e4;
+    --dojeon-color-primary-800: #e8d6f4;
+    --dojeon-color-primary-900: #f4e8ff;
     --dojeon-color-primary-container: #2c2235;
     --dojeon-color-primary-container-soft: #33243d;
     --dojeon-color-primary-border: #6f4d86;
     --dojeon-color-primary-focus-ring: rgba(192, 132, 252, 0.35);
     --dojeon-color-tab-inactive: #2e303a;
+    --dojeon-color-vocabulary-row: #242631;
+    --dojeon-color-success-surface: #1c3b25;
+    --dojeon-color-error-light: #3b2225;
     --dojeon-color-error-surface: #3a2024;
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;

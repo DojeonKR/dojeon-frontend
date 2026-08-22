@@ -213,7 +213,13 @@ function VerifyEmailPage({ onBack, email, onVerifySuccess }: VerifyEmailPageProp
             </div>
           ))}
         </div>
-        <p className="verify-email-timer" role="timer" aria-label={`Code expires in ${timerText}`}>
+        <p
+          className="verify-email-timer"
+          role="timer"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-label={`Code expires in ${timerText}`}
+        >
           {timerText}
         </p>
         <div className="verify-email-resend">

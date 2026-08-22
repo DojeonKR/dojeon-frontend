@@ -26,8 +26,8 @@ interface ProfileUser {
   userId: string
   email: string
   hasPassword: boolean
-  username: string
-  nickname: string
+  username: string | null
+  nickname: string | null
   phoneNumber: string | null
   birthday: string | null
   profileImgUrl: string | null
@@ -154,8 +154,8 @@ const mapUserMeToProfileData = (data: UserMeData): ProfileMainData => ({
     userId: data.profile.userId,
     email: data.profile.email,
     hasPassword: data.profile.hasPassword ?? true,
-    username: data.profile.username ?? data.profile.email.split('@')[0],
-    nickname: data.profile.nickname ?? data.profile.username ?? 'Dojeon',
+    username: data.profile.username,
+    nickname: data.profile.nickname,
     phoneNumber: data.profile.phoneNumber,
     birthday: data.profile.birthday,
     profileImgUrl: data.profile.profileImgUrl,
@@ -281,8 +281,10 @@ function ProfileMainPage({
     ...(apiProfileData ?? profileMainMockData),
     user: {
       ...(apiProfileData?.user ?? profileMainMockData.user),
-      nickname: apiProfileData?.user.nickname ?? (nickname.trim() || profileMainMockData.user.nickname),
-      username: apiProfileData?.user.username ?? (username.trim() || profileMainMockData.user.username),
+      nickname:
+        apiProfileData?.user.nickname?.trim() || nickname.trim() || profileMainMockData.user.nickname,
+      username:
+        apiProfileData?.user.username?.trim() || username.trim() || profileMainMockData.user.username,
     },
   }
   const { user, recentCourse, stats, attendance, recentAchievements } = profileData

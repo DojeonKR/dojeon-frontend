@@ -472,6 +472,7 @@ function GrammarPracticePage({
   const listeningAnswersRef = useRef<Record<number, string>>({})
   const nextGrammarLessonRef = useRef<HTMLElement | null>(null)
   const nextGrammarDialogRef = useRef<HTMLDivElement | null>(null)
+  const nextGrammarDialogTriggerRef = useRef<HTMLElement | null>(null)
 
   const isFillStep = practiceStep === 'fill'
   const isFillIntroStep = practiceStep === 'fill-intro'
@@ -706,13 +707,68 @@ function GrammarPracticePage({
     | Record<NextGrammarVocabId, { title: string; description: string }>
     | null = grammarPracticeDemo?.vocabNotes ?? null
 
+  const rememberNextGrammarDialogTrigger = () => {
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement) {
+      nextGrammarDialogTriggerRef.current = activeElement
+    }
+  }
+
+  const closeNextGrammarDialog = () => {
+    setActiveNextGrammarDialog(null)
+  }
+
+  const handleNextGrammarDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeNextGrammarDialog()
+      return
+    }
+
+    if (event.key !== 'Tab') return
+
+    const focusableElements = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null)
+
+    if (focusableElements.length === 0) {
+      event.preventDefault()
+      event.currentTarget.focus()
+      return
+    }
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+    const isOutsideDialog = !event.currentTarget.contains(document.activeElement)
+
+    if (
+      event.shiftKey &&
+      (document.activeElement === firstElement ||
+        document.activeElement === event.currentTarget ||
+        isOutsideDialog)
+    ) {
+      event.preventDefault()
+      lastElement.focus()
+    } else if (
+      !event.shiftKey &&
+      (document.activeElement === lastElement ||
+        document.activeElement === event.currentTarget ||
+        isOutsideDialog)
+    ) {
+      event.preventDefault()
+      firstElement.focus()
+    }
+  }
+
   const toggleShowGrammar = () => {
     setMarkMode((current) => (current === 'GRAMMAR' ? null : 'GRAMMAR'))
-    setActiveNextGrammarDialog(null)
+    closeNextGrammarDialog()
   }
   const toggleShowVocab = () => {
     setMarkMode((current) => (current === 'VOCAB' ? null : 'VOCAB'))
-    setActiveNextGrammarDialog(null)
+    closeNextGrammarDialog()
   }
 
   // 목적지 조회가 404 등으로 실패했을 때 팝업에 대신 띄우는 문구.
@@ -726,6 +782,7 @@ function GrammarPracticePage({
     if (annotations.length === 0) return
     setAnnotationLessonBlockedMessage(null)
     setIsCheckingAnnotationTarget(false)
+    rememberNextGrammarDialogTrigger()
     setActiveNextGrammarDialog({
       kind: 'annotation',
       unitId: unit.id,
@@ -773,7 +830,7 @@ function GrammarPracticePage({
       return
     }
 
-    setActiveNextGrammarDialog(null)
+    closeNextGrammarDialog()
   }
 
   // GO TO LESSON 후 상단 뒤로가기로 복귀했을 때 저장해 둔 팝업을 다시 연다.
@@ -802,6 +859,7 @@ function GrammarPracticePage({
       if (!unit || !annotation) return
 
       setMarkMode(pendingAnnotationRestore.markMode)
+      rememberNextGrammarDialogTrigger()
       setActiveNextGrammarDialog({
         kind: 'annotation',
         unitId: unit.id,
@@ -831,18 +889,24 @@ function GrammarPracticePage({
   }
   const handleNextGrammarMarkPress = (noteId: NextGrammarNoteId) => {
     if (!showGrammar) return
-    setActiveNextGrammarDialog((prev) =>
-      prev?.kind === 'grammar' && prev.id === noteId ? null : { kind: 'grammar', id: noteId },
-    )
+    if (activeNextGrammarDialog?.kind === 'grammar' && activeNextGrammarDialog.id === noteId) {
+      closeNextGrammarDialog()
+      return
+    }
+    rememberNextGrammarDialogTrigger()
+    setActiveNextGrammarDialog({ kind: 'grammar', id: noteId })
   }
   const handleNextVocabMarkPress = (noteId: NextGrammarVocabId) => {
     if (!showVocab) return
-    setActiveNextGrammarDialog((prev) =>
-      prev?.kind === 'vocab' && prev.id === noteId ? null : { kind: 'vocab', id: noteId },
-    )
+    if (activeNextGrammarDialog?.kind === 'vocab' && activeNextGrammarDialog.id === noteId) {
+      closeNextGrammarDialog()
+      return
+    }
+    rememberNextGrammarDialogTrigger()
+    setActiveNextGrammarDialog({ kind: 'vocab', id: noteId })
   }
   const handleGoToNextGrammarLesson = () => {
-    setActiveNextGrammarDialog(null)
+    closeNextGrammarDialog()
     nextGrammarLessonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   const practiceHintText = useMemo(() => {
@@ -882,6 +946,8 @@ function GrammarPracticePage({
     })
   }
   const handleReadingQuestionKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return
+
     if (event.key === 'ArrowLeft') {
       event.preventDefault()
       moveReadingQuestion('prev')
@@ -892,6 +958,8 @@ function GrammarPracticePage({
     }
   }
   const handleListeningQuestionKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return
+
     if (event.key === 'ArrowLeft') {
       event.preventDefault()
       moveListeningQuestion('prev')
@@ -1278,8 +1346,14 @@ function GrammarPracticePage({
   }, [choiceFeedback])
 
   useEffect(() => {
-    if (!activeNextGrammarDialog) return
-    nextGrammarDialogRef.current?.focus()
+    if (activeNextGrammarDialog) {
+      nextGrammarDialogRef.current?.focus()
+      return
+    }
+
+    const trigger = nextGrammarDialogTriggerRef.current
+    if (trigger?.isConnected) trigger.focus()
+    nextGrammarDialogTriggerRef.current = null
   }, [activeNextGrammarDialog])
 
   const handleReviewSubmit = async () => {
@@ -1855,7 +1929,7 @@ function GrammarPracticePage({
                 disabled={explanationOnly}
                 onClick={() => {
                   pushHistory()
-                  setActiveNextGrammarDialog(null)
+                  closeNextGrammarDialog()
                   resetPracticeFlow()
                   // 실제로 존재하는 첫 연습 단계로 넘어간다. MCQ 가 없으면 choice 화면은 건너뛴다.
                   setPracticeStep(firstPracticeStep ?? 'review')
@@ -2835,7 +2909,7 @@ function GrammarPracticePage({
           <div
             className="grammar-practice-next-grammar-note-backdrop"
             role="presentation"
-            onClick={() => setActiveNextGrammarDialog(null)}
+            onClick={closeNextGrammarDialog}
           >
             <div
               ref={nextGrammarDialogRef}
@@ -2852,9 +2926,7 @@ function GrammarPracticePage({
               aria-labelledby="next-grammar-note-title"
               tabIndex={-1}
               onClick={(event) => event.stopPropagation()}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') setActiveNextGrammarDialog(null)
-              }}
+              onKeyDown={handleNextGrammarDialogKeyDown}
             >
               {activeNextGrammarDialog.kind === 'annotation'
                 ? (() => {

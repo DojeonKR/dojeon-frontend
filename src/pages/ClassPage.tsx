@@ -125,9 +125,9 @@ function ClassPage({
 
   const progressPercent = useMemo(() => {
     if (isUsingFallbackCourses) return fallbackProgressPercent
-    if (!resumeBanner) return 0
+    if (!resumeBanner) return null
     const activeCourse = courses.find((c) => c.courseId === resumeBanner.courseId)
-    return activeCourse?.overallProgressPercent ?? resumeBanner.overallProgressPercent ?? 0
+    return activeCourse?.overallProgressPercent ?? resumeBanner.overallProgressPercent ?? null
   }, [courses, isUsingFallbackCourses, resumeBanner])
 
   const activeCourseIndex = (() => {
@@ -141,7 +141,7 @@ function ClassPage({
   const progressFillWidth = getClassProgressFillWidth(
     activeCourseIndex,
     classProgressDotCount,
-    progressPercent,
+    progressPercent ?? 0,
   )
 
   const openCourseIds = useMemo(() => {
@@ -194,30 +194,32 @@ function ClassPage({
   return (
     <main className="class-screen">
       <section className="class-content">
-        <section className="class-progress-card">
-          <h1 className="class-page-title">My progress</h1>
-          <p className="class-progress-complete">{progressPercent}% complete</p>
-          <div className="class-progress-bar" role="list" aria-label="class progress">
-            <span className="class-progress-track" aria-hidden="true" />
-            <span
-              className="class-progress-fill"
-              style={{ width: progressFillWidth }}
-              aria-hidden="true"
-            />
-            {Array.from({ length: courses.length }).map((_, index) => (
+        {courses.length > 0 && progressPercent !== null ? (
+          <section className="class-progress-card">
+            <h1 className="class-page-title">My progress</h1>
+            <p className="class-progress-complete">{progressPercent}% complete</p>
+            <div className="class-progress-bar" role="list" aria-label="class progress">
+              <span className="class-progress-track" aria-hidden="true" />
               <span
-                key={index}
-                className={`class-progress-dot ${
-                  index <= activeCourseIndex
-                    ? 'class-progress-dot-past'
-                    : 'class-progress-dot-upcoming'
-                }`}
-                style={{ left: getClassProgressDotLeft(index, classProgressDotCount) }}
-                role="listitem"
+                className="class-progress-fill"
+                style={{ width: progressFillWidth }}
+                aria-hidden="true"
               />
-            ))}
-          </div>
-        </section>
+              {Array.from({ length: courses.length }).map((_, index) => (
+                <span
+                  key={index}
+                  className={`class-progress-dot ${
+                    index <= activeCourseIndex
+                      ? 'class-progress-dot-past'
+                      : 'class-progress-dot-upcoming'
+                  }`}
+                  style={{ left: getClassProgressDotLeft(index, classProgressDotCount) }}
+                  role="listitem"
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="class-course-list" aria-label="courses">
           {courses.length === 0 ? (
