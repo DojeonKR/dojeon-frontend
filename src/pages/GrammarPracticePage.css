@@ -1111,6 +1111,7 @@
 .grammar-practice-content-fill .grammar-practice-answer-column {
   display: inline-flex;
   align-items: center;
+  position: relative;
   vertical-align: middle;
   margin: 0 6px;
 }
@@ -1134,7 +1135,7 @@
   box-shadow: 0 0 0 2px var(--dojeon-color-primary-focus-ring);
 }
 
-.grammar-practice-content-fill .grammar-practice-question-card-fill:has(.grammar-practice-correct-answer-fill) .grammar-practice-answer-input {
+.grammar-practice-content-fill .grammar-practice-answer-column-wrong .grammar-practice-answer-input {
   background: var(--dojeon-color-error-light);
   color: var(--dojeon-color-error);
 }

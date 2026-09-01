@@ -44,6 +44,13 @@ export function splitPracticePrompt(prompt: string): { prefix: string; suffix: s
   }
 }
 
+export function splitPracticePromptParts(prompt: string): string[] {
+  // 빈칸 직전 개행은 질문과 빈칸 문장을 분리하는 레이아웃 정보이므로 보존.
+  return stripPromptNumber(prompt)
+    .split(/_{2,}/)
+    .map((part) => part.replace(/^[\t ]+|[\t ]+$/g, ''))
+}
+
 export const MATERIAL_PRACTICE_KINDS: MaterialPracticeKind[] = ['choose', 'fill', 'free', 'cards']
 
 // 단계 -> 자료 kind. 문항 API 로만 만들어진 연습 문항에도 같은 kind 를 붙여 화면 분기를 통일한다.
@@ -85,6 +92,7 @@ export function toMaterialPracticeItems(
         const back = toTrimmedText(item?.back) || toTrimmedText(item?.note) || sample
         const prompt = toTrimmedText(item?.prompt) || front
         const { prefix, suffix } = splitPracticePrompt(prompt)
+        const blankParts = splitPracticePromptParts(prompt)
         const promptQuestion = prompt.split(/\r?\n/, 1)[0]?.trim() ?? ''
         const fixedQuestion =
           toTrimmedText(practice.fixedQuestion) ||
@@ -102,6 +110,8 @@ export function toMaterialPracticeItems(
           hasImagePlaceholder: practice.imagePlaceholder === true,
           prefix: stage === 'cards' ? front : prefix,
           suffix: stage === 'cards' ? '' : suffix,
+          blankParts,
+          blankCount: kind === 'fill' ? Math.max(1, blankParts.length - 1) : 1,
           options: toStringList(item?.options),
           // 자유 작문(free)은 answers 없이 sample(모범 답안)만 온다.
           answers: answers.length > 0 ? answers : sample.length > 0 ? [sample] : [],
@@ -148,6 +158,12 @@ export function toQuestionPracticeItems(
         ? { prefix: stripPromptNumber(questionText).trim(), suffix: '' }
         : splitPracticePrompt(questionText)
       const answer = toTrimmedText(question.answer)
+      const parsedBlankParts = splitPracticePromptParts(questionText)
+      const blankCount = stage === 'fill' ? Math.max(1, question.blankCount) : 1
+      const blankParts =
+        parsedBlankParts.length === blankCount + 1
+          ? parsedBlankParts
+          : [prefix, ...Array(Math.max(0, blankCount - 1)).fill(''), suffix]
 
       return {
         key: `question-${question.id}`,
@@ -158,6 +174,8 @@ export function toQuestionPracticeItems(
         hasImagePlaceholder: false,
         prefix,
         suffix,
+        blankParts,
+        blankCount,
         // FREE 는 보기 선택 문항이 아니라서 보기가 딸려 와도 그리지 않는다.
         options: isFree ? [] : question.options ?? [],
         answers: answer.length > 0 ? [answer] : [],
@@ -259,6 +277,24 @@ export function matchesPracticeAnswer(item: PracticeItemModel, answer: string): 
   return item.answers.some((candidate) => normalizeAnswerText(candidate) === normalized)
 }
 
+export function matchesPracticeAnswers(item: PracticeItemModel, answers: string[]): boolean {
+  if (isSampleAnswerItem(item)) return false
+
+  // 단일 빈칸의 answers는 허용 가능한 복수 정답 목록이다.
+  if (item.blankCount <= 1) {
+    return answers.length === 1 && matchesPracticeAnswer(item, answers[0])
+  }
+
+  // 복수 빈칸의 answers는 화면 빈칸과 같은 순서의 정답 배열이다.
+  return (
+    answers.length === item.blankCount &&
+    item.answers.length === item.blankCount &&
+    answers.every(
+      (answer, index) => normalizeAnswerText(answer) === normalizeAnswerText(item.answers[index]),
+    )
+  )
+}
+
 // 행 객체의 키 순서. 서버 표는 headers 순서대로 condition -> form -> examples 를 채워 내려준다.
 // (예: headers ["받침","형태","예시"] / row { condition: "받침 O", form: "N이에요", examples: [...] })
 export const TABLE_ROW_KEYS = ['condition', 'form', 'examples']
@@ -353,6 +389,7 @@ export function toPracticeQuestions(questions: SectionQuestion[]): PracticeQuest
       type: isFree ? 'free' : (question.options?.length ?? 0) > 0 ? 'choice' : 'blank',
       options: isFree ? [] : question.options ?? [],
       answer: question.answer,
+      blankCount: question.blankCount,
     }
   })
 }

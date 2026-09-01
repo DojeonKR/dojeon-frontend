@@ -56,6 +56,7 @@ const demo: GrammarPracticeDemo = {
       type: 'choice',
       options: ['월요일', '수요일', '토요일', '일요일'],
       answer: '토요일',
+      blankCount: 1,
     },
     {
       questionId: -2,
@@ -64,6 +65,7 @@ const demo: GrammarPracticeDemo = {
       type: 'blank',
       options: [],
       answer: null,
+      blankCount: 1,
     },
   ],
   listeningQuestions: [
@@ -74,6 +76,7 @@ const demo: GrammarPracticeDemo = {
       type: 'choice',
       options: ['2:00', '2:30', '3:00', '3:30'],
       answer: '2:00',
+      blankCount: 1,
     },
   ],
   readingScript: [

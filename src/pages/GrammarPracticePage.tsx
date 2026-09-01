@@ -58,8 +58,9 @@ import {
   PRACTICE_STAGE_BY_STEP,
   grammarPageByStep,
   isSampleAnswerItem,
-  matchesPracticeAnswer,
+  matchesPracticeAnswers,
   mergePracticeItems,
+  normalizeAnswerText,
   resolvePracticeStep,
   toGrammarTable,
   toMaterialPracticeItems,
@@ -110,8 +111,8 @@ interface PracticeStateSnapshot {
   selectedAnswer: string
   revealedAnswers: string[]
   choiceFeedback: ChoiceFeedback | null
-  typedAnswer: string
-  submittedTypedAnswer: string
+  typedAnswers: string[]
+  submittedTypedAnswers: string[]
   makeSentenceAnswer: string
   submittedMakeSentenceAnswer: string
   // 한 단계 안에서 여러 연습 문항을 순서대로 풀기 때문에 문항 위치와 채점 결과도 함께 되돌린다.
@@ -231,9 +232,10 @@ function findMaterialByKeywords(
 }
 
 interface TextAnswerGrade {
-  answer: string
+  answerKey: string
   correct: boolean
   correctAnswer?: string
+  correctAnswers?: string[]
   // 자유 작문(FREE)처럼 정답이 하나로 정해지지 않는 문항.
   // correctAnswer 는 예시 문장(sample)일 뿐이라 정/오답 판정에 쓰지 않는다.
   isSample?: boolean
@@ -352,6 +354,8 @@ function GrammarPracticePage({
       fixedQuestion: '',
       hasImagePlaceholder: false,
       suffix: '',
+      blankParts: ['', ''],
+      blankCount: 1,
       isSampleAnswer: false,
       cardBack: '',
     }
@@ -423,8 +427,8 @@ function GrammarPracticePage({
   const [revealedAnswers, setRevealedAnswers] = useState<string[]>([])
   const [choiceFeedback, setChoiceFeedback] = useState<ChoiceFeedback | null>(null)
   const [isHintVisible, setIsHintVisible] = useState(false)
-  const [typedAnswer, setTypedAnswer] = useState('')
-  const [submittedTypedAnswer, setSubmittedTypedAnswer] = useState('')
+  const [typedAnswers, setTypedAnswers] = useState<string[]>([''])
+  const [submittedTypedAnswers, setSubmittedTypedAnswers] = useState<string[]>([])
   const [makeSentenceAnswer, setMakeSentenceAnswer] = useState('')
   const [submittedMakeSentenceAnswer, setSubmittedMakeSentenceAnswer] = useState('')
   const [history, setHistory] = useState<PracticeStateSnapshot[]>([])
@@ -521,6 +525,7 @@ function GrammarPracticePage({
   const listeningDragOffsetRef = useRef(0)
   const listeningDidDragRef = useRef(false)
   const listeningAnswersRef = useRef<Record<number, string>>({})
+  const typedAnswersRef = useRef<string[]>([''])
   const nextGrammarLessonRef = useRef<HTMLElement | null>(null)
   const nextGrammarDialogRef = useRef<HTMLDivElement | null>(null)
   const nextGrammarDialogTriggerRef = useRef<HTMLElement | null>(null)
@@ -555,27 +560,23 @@ function GrammarPracticePage({
   const fillPromptParts = useMemo(() => {
     if (!isFillStep || activePractice === null) return null
 
-    const lines = activePractice.prefix
+    const parts = activePractice.blankParts.length > 1
+      ? activePractice.blankParts
+      : [activePractice.prefix, activePractice.suffix]
+    const hasLineBreakBeforeFirstBlank = /\r?\n\s*$/.test(parts[0])
+    const lines = parts[0]
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
     if (lines.length === 0) return null
 
-    if (lines.length === 1) {
-      const singleLineMatch = lines[0].match(/^(질문:\s*.+?\([^)]*\))\s+(.+)$/)
-      if (!singleLineMatch) return null
-
-      return {
-        promptLine: singleLineMatch[1],
-        beforeBlank: singleLineMatch[2],
-        afterBlank: activePractice.suffix,
-      }
-    }
-
     return {
-      promptLine: lines.slice(0, -1).join(' '),
-      beforeBlank: lines[lines.length - 1],
-      afterBlank: activePractice.suffix,
+      promptLine: hasLineBreakBeforeFirstBlank
+        ? lines.join(' ')
+        : lines.length > 1
+        ? lines.slice(0, -1).join(' ')
+        : '',
+      sentenceParts: [hasLineBreakBeforeFirstBlank ? '' : lines[lines.length - 1], ...parts.slice(1)],
     }
   }, [activePractice, isFillStep])
 
@@ -589,14 +590,23 @@ function GrammarPracticePage({
   const currentAnswer = isChoiceStep
     ? selectedAnswer
     : isFillStep
-    ? submittedTypedAnswer
+    ? submittedTypedAnswers.join('\u241f')
     : isMakeStep
     ? submittedMakeSentenceAnswer
     : ''
 
   // 문항에 정답이 실려 있으면 그것으로, 없으면 채점 API 결과(textGrade)로 판정한다.
-  const matchedTextGrade = textGrade && textGrade.answer === currentAnswer ? textGrade : null
-  const correctAnswer = matchedTextGrade?.correctAnswer ?? activePractice?.answers[0] ?? ''
+  const matchedTextGrade = textGrade && textGrade.answerKey === currentAnswer ? textGrade : null
+  const correctAnswer =
+    matchedTextGrade?.correctAnswers?.join(' / ') ??
+    matchedTextGrade?.correctAnswer ??
+    activePractice?.answers[0] ??
+    ''
+  const correctAnswersByBlank =
+    matchedTextGrade?.correctAnswers ??
+    ((activePractice?.blankCount ?? 1) > 1
+      ? activePractice?.answers ?? []
+      : [matchedTextGrade?.correctAnswer ?? activePractice?.answers[0] ?? ''])
   const isAnswered = currentAnswer.length > 0
   // free 연습(자료 free 블록 / FREE 문항)은 정답이 하나로 정해지지 않고 sample(모범 답안)만
   // 오므로 정/오답을 매기지 않는다. 채점 API 응답이 예시였을 때도 같게 본다.
@@ -616,6 +626,16 @@ function GrammarPracticePage({
     isCorrectAnswer = matchedTextGrade?.correct === true
     isWrongAnswer = matchedTextGrade?.correct === false
   }
+  const incorrectBlankIndexes = new Set(
+    isFillStep && isWrongAnswer
+      ? correctAnswersByBlank.flatMap((correct, index) =>
+          correct &&
+          normalizeAnswerText(submittedTypedAnswers[index] ?? '') !== normalizeAnswerText(correct)
+            ? [index]
+            : [],
+        )
+      : [],
+  )
   const shouldShowChoiceFeedback =
     isChoiceStep &&
     choiceFeedback !== null &&
@@ -636,12 +656,14 @@ function GrammarPracticePage({
       !checkAnswer.isPending &&
       (!isChoiceStep || showChoiceFeedbackPanel) &&
       (!isTextStep || hasCompletedTextGrade)
-  const currentTextAnswer = isMakeStep ? makeSentenceAnswer : typedAnswer
-  const submittedTextAnswer = isMakeStep ? submittedMakeSentenceAnswer : submittedTypedAnswer
+  const currentTextAnswer = isMakeStep ? makeSentenceAnswer : typedAnswers.join('\u241f')
+  const submittedTextAnswer = isMakeStep ? submittedMakeSentenceAnswer : submittedTypedAnswers.join('\u241f')
   const canSubmitTextAnswer =
     isTextStep &&
     !checkAnswer.isPending &&
-    currentTextAnswer.trim().length > 0 &&
+    (isFillStep
+      ? typedAnswers.length === (activePractice?.blankCount ?? 1) && typedAnswers.every((answer) => answer.trim().length > 0)
+      : currentTextAnswer.trim().length > 0) &&
     currentTextAnswer.trim() !== submittedTextAnswer
   const isNextPracticeStepEnabled = canSubmitTextAnswer || canMoveToNextPracticeStep
 
@@ -1073,8 +1095,9 @@ function GrammarPracticePage({
     setRevealedAnswers([])
     setChoiceFeedback(null)
     setIsHintVisible(false)
-    setTypedAnswer('')
-    setSubmittedTypedAnswer('')
+    setTypedAnswers(Array.from({ length: activePractice?.blankCount ?? 1 }, () => ''))
+    typedAnswersRef.current = Array.from({ length: activePractice?.blankCount ?? 1 }, () => '')
+    setSubmittedTypedAnswers([])
     setMakeSentenceAnswer('')
     setSubmittedMakeSentenceAnswer('')
     setServerGradedAnswers({})
@@ -1165,8 +1188,8 @@ function GrammarPracticePage({
     selectedAnswer,
     revealedAnswers,
     choiceFeedback,
-    typedAnswer,
-    submittedTypedAnswer,
+    typedAnswers,
+    submittedTypedAnswers,
     makeSentenceAnswer,
     submittedMakeSentenceAnswer,
     practiceItemIndex: practiceItemCursor,
@@ -1184,8 +1207,9 @@ function GrammarPracticePage({
     setSelectedAnswer(snapshot.selectedAnswer)
     setRevealedAnswers(snapshot.revealedAnswers)
     setChoiceFeedback(snapshot.choiceFeedback)
-    setTypedAnswer(snapshot.typedAnswer)
-    setSubmittedTypedAnswer(snapshot.submittedTypedAnswer)
+    setTypedAnswers(snapshot.typedAnswers)
+    typedAnswersRef.current = snapshot.typedAnswers
+    setSubmittedTypedAnswers(snapshot.submittedTypedAnswers)
     setMakeSentenceAnswer(snapshot.makeSentenceAnswer)
     setSubmittedMakeSentenceAnswer(snapshot.submittedMakeSentenceAnswer)
     setPracticeItemCursor(snapshot.practiceItemIndex)
@@ -1232,41 +1256,46 @@ function GrammarPracticePage({
   // 유일한 정답이 아니라 예시 문장이라 Exact match 로 정/오답을 매기지 않고 예시만 보여 준다.
   const gradePracticeAnswer = async (
     item: PracticeItemModel,
-    answer: string,
+    answers: string[],
   ): Promise<TextAnswerGrade | null> => {
     const isSample = isSampleAnswerItem(item)
+    const answerKey = answers.join('\u241f')
+
+    // 서버 문항 ID가 있으면 자료에 정답이 병합돼 있어도 항상 서버에서 채점한다.
+    if (item.questionId !== null && sectionId !== null) {
+      try {
+        const result = await checkAnswer.mutateAsync({
+          sectionId,
+          payload:
+            item.kind === 'fill'
+              ? { questionId: item.questionId, userAnswers: answers }
+              : { questionId: item.questionId, userAnswer: answers[0] ?? '' },
+        })
+        // FREE는 응답의 correct를 판정으로 쓰지 않는다(correctAnswer는 모범 답안이다).
+        const isSampleResult = isSample || item.kind === 'free'
+        return {
+          answerKey,
+          correct: isSampleResult ? false : Boolean(result?.correct),
+          correctAnswer: result?.correctAnswer,
+          correctAnswers: result?.correctAnswers,
+          isSample: isSampleResult,
+        }
+      } catch {
+        return item.kind === 'free' ? { answerKey, correct: false, isSample: true } : null
+      }
+    }
 
     if (item.answers.length > 0) {
       return {
-        answer,
-        correct: isSample ? false : matchesPracticeAnswer(item, answer),
+        answerKey,
+        correct: isSample ? false : matchesPracticeAnswers(item, answers),
         correctAnswer: item.answers[0],
+        correctAnswers: item.blankCount > 1 ? item.answers : undefined,
         isSample,
       }
     }
 
-    if (item.questionId === null || sectionId === null) {
-      // 예시 문장조차 없는 자유 작문은 제출만으로 끝낸다(다음으로 넘어갈 수 있게 한다).
-      return item.kind === 'free' ? { answer, correct: false, isSample: true } : null
-    }
-
-    try {
-      const result = await checkAnswer.mutateAsync({
-        sectionId,
-        payload: { questionId: item.questionId, userAnswer: answer },
-      })
-      // FREE 는 응답의 correct 를 판정으로 쓰지 않는다(항상 true 로 오고 correctAnswer 는 예시다).
-      const isSampleResult = isSample || item.kind === 'free'
-      return {
-        answer,
-        correct: isSampleResult ? false : Boolean(result?.correct),
-        correctAnswer: result?.correctAnswer,
-        isSample: isSampleResult,
-      }
-    } catch {
-      // 채점 요청 실패는 오답으로 표시하지 않는다.
-      return item.kind === 'free' ? { answer, correct: false, isSample: true } : null
-    }
+    return item.kind === 'free' ? { answerKey, correct: false, isSample: true } : null
   }
 
   const handleChoiceOptionClick = async (option: string) => {
@@ -1277,7 +1306,7 @@ function GrammarPracticePage({
     setChoiceFeedback(null)
     setRevealedAnswers((prev) => (prev.includes(option) ? prev : [...prev, option]))
 
-    const grade = await gradePracticeAnswer(activePractice, option)
+    const grade = await gradePracticeAnswer(activePractice, [option])
     if (grade === null) return
 
     setServerGradedAnswers((prev) => ({ ...prev, [option]: grade.correct }))
@@ -1288,14 +1317,20 @@ function GrammarPracticePage({
     })
   }
 
-  const handleTextAnswerSubmit = async (kind: 'fill' | 'make', rawAnswer: string) => {
-    const answer = rawAnswer.trim()
-    if (kind === 'fill') setSubmittedTypedAnswer(answer)
-    else setSubmittedMakeSentenceAnswer(answer)
+  const handleTextAnswerSubmit = async (kind: 'fill' | 'make', rawAnswers: string[]) => {
+    const answers = rawAnswers.map((answer) => answer.trim())
+    if (answers.some((answer) => answer.length === 0) || activePractice === null) return
 
-    if (answer.length === 0 || activePractice === null) return
+    if (kind === 'fill') setSubmittedTypedAnswers(answers)
+    else setSubmittedMakeSentenceAnswer(answers[0] ?? '')
 
-    const grade = await gradePracticeAnswer(activePractice, answer)
+    const grade = await gradePracticeAnswer(activePractice, answers)
+    if (
+      kind === 'fill' &&
+      typedAnswersRef.current.map((answer) => answer.trim()).join('\u241f') !== answers.join('\u241f')
+    ) {
+      return
+    }
     if (grade !== null) setTextGrade(grade)
   }
 
@@ -1323,7 +1358,10 @@ function GrammarPracticePage({
     try {
       const result = await checkAnswer.mutateAsync({
         sectionId,
-        payload: { questionId: question.questionId, userAnswer: answer },
+        payload:
+          question.type === 'blank'
+            ? { questionId: question.questionId, userAnswers: [answer] }
+            : { questionId: question.questionId, userAnswer: answer },
       })
       setReadingGradedAnswers((prev) => ({ ...prev, [index]: Boolean(result?.correct) }))
     } catch {
@@ -1365,7 +1403,10 @@ function GrammarPracticePage({
     try {
       const result = await checkAnswer.mutateAsync({
         sectionId,
-        payload: { questionId: question.questionId, userAnswer: answer },
+        payload:
+          question.type === 'blank'
+            ? { questionId: question.questionId, userAnswers: [answer] }
+            : { questionId: question.questionId, userAnswer: answer },
       })
       if (listeningAnswersRef.current[questionId] !== answer) return
       setListeningGradedAnswers((prev) => ({
@@ -1495,31 +1536,57 @@ function GrammarPracticePage({
     onOpenNextSection(nextSection)
   }
 
-  const answerColumn = (
-    <div className="grammar-practice-answer-column">
+  const renderAnswerColumn = (blankIndex = 0) => {
+    const isBlankWrong = incorrectBlankIndexes.has(blankIndex)
+    return (
+    <div
+      className={`grammar-practice-answer-column ${
+        isBlankWrong ? 'grammar-practice-answer-column-wrong' : ''
+      }`}
+    >
       {isFillStep ? (
         <input
           type="text"
           className="grammar-practice-answer-input"
-          value={typedAnswer}
+          value={typedAnswers[blankIndex] ?? ''}
+          disabled={checkAnswer.isPending}
+          aria-label={`빈칸 ${blankIndex + 1}`}
           enterKeyHint="done"
-          onChange={(e) => setTypedAnswer(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value
+            setTypedAnswers((previous) => {
+              const next = Array.from({ length: activePractice?.blankCount ?? 1 }, (_, index) => previous[index] ?? '')
+              next[blankIndex] = value
+              typedAnswersRef.current = next
+              return next
+            })
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
+              const answers = typedAnswers.map((answer) => answer.trim())
+              if (
+                answers.length !== (activePractice?.blankCount ?? 1) ||
+                answers.some((answer) => answer.length === 0)
+              ) {
+                return
+              }
               pushHistory()
-              void handleTextAnswerSubmit('fill', typedAnswer)
+              void handleTextAnswerSubmit('fill', answers)
             }
           }}
         />
       ) : (
         <div className="grammar-practice-answer-slot">{isAnswered ? selectedAnswer : null}</div>
       )}
-      {isFillStep && isWrongAnswer ? (
-        <p className="grammar-practice-correct-answer grammar-practice-correct-answer-fill">{correctAnswer}</p>
+      {isBlankWrong ? (
+        <p className="grammar-practice-correct-answer grammar-practice-correct-answer-fill">
+          {correctAnswersByBlank[blankIndex]}
+        </p>
       ) : null}
     </div>
-  )
+    )
+  }
 
   if (isFillIntroStep) {
     return (
@@ -1553,8 +1620,10 @@ function GrammarPracticePage({
             onClick={() => {
               pushHistory()
               setPracticeStep('fill')
-              setTypedAnswer('')
-              setSubmittedTypedAnswer('')
+              const emptyAnswers = Array.from({ length: activePractice?.blankCount ?? 1 }, () => '')
+              setTypedAnswers(emptyAnswers)
+              typedAnswersRef.current = emptyAnswers
+              setSubmittedTypedAnswers([])
             }}
           >
             START
@@ -2768,7 +2837,7 @@ function GrammarPracticePage({
                         if (e.key === 'Enter') {
                           e.preventDefault()
                           pushHistory()
-                          void handleTextAnswerSubmit('make', makeSentenceAnswer)
+                          void handleTextAnswerSubmit('make', [makeSentenceAnswer])
                         }
                       }}
                     />
@@ -2825,19 +2894,24 @@ function GrammarPracticePage({
               <div className="grammar-practice-question-stack">
                 {isFillStep && fillPromptParts ? (
                   <div className="grammar-practice-fill-prompt-lines">
-                    <p className="grammar-practice-question-text grammar-practice-fill-prompt-line">
-                      {fillPromptParts.promptLine}
-                    </p>
+                    {fillPromptParts.promptLine ? (
+                      <p className="grammar-practice-question-text grammar-practice-fill-prompt-line">
+                        {fillPromptParts.promptLine}
+                      </p>
+                    ) : null}
                     <div className="grammar-practice-question-row grammar-practice-fill-sentence-line">
-                      <span className="grammar-practice-question-text">{fillPromptParts.beforeBlank}</span>
-                      {answerColumn}
-                      <span className="grammar-practice-question-text">{fillPromptParts.afterBlank}</span>
+                      {fillPromptParts.sentenceParts.map((part, index) => (
+                        <Fragment key={`${part}-${index}`}>
+                          <span className="grammar-practice-question-text">{part}</span>
+                          {index < (activePractice?.blankCount ?? 1) ? renderAnswerColumn(index) : null}
+                        </Fragment>
+                      ))}
                     </div>
                   </div>
                 ) : (
                   <div className="grammar-practice-question-row">
                     <p className="grammar-practice-question-text">{activePractice?.prefix ?? ''}</p>
-                    {answerColumn}
+                    {renderAnswerColumn()}
                     {activePractice !== null && activePractice.suffix ? (
                       <p className="grammar-practice-question-text">{activePractice.suffix}</p>
                     ) : activePractice !== null && activePractice.questionId !== null ? (
@@ -2982,7 +3056,10 @@ function GrammarPracticePage({
             onClick={() => {
               if (canSubmitTextAnswer) {
                 pushHistory()
-                void handleTextAnswerSubmit(isMakeStep ? 'make' : 'fill', currentTextAnswer)
+                void handleTextAnswerSubmit(
+                  isMakeStep ? 'make' : 'fill',
+                  isMakeStep ? [makeSentenceAnswer] : typedAnswers,
+                )
                 return
               }
               if (!canMoveToNextPracticeStep || currentStage === null) return

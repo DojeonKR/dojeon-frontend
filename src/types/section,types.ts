@@ -117,6 +117,7 @@ export interface SectionQuestion {
     type: string;
     questionText: string;
     options: string[];
+    blankCount: number;
     // 서버가 정답을 함께 내려주면 채점 API 없이 앱에서 바로 채점한다.
     answer: string | null;
     explanation: string | null;
@@ -135,14 +136,14 @@ export interface SectionQuestionResponse {
     timestamp: string;
 }
 
-export interface SectionCheckAnswerRequest {
-    questionId: number;
-    userAnswer: string;
-}
+export type SectionCheckAnswerRequest =
+    | { questionId: number; userAnswer: string }
+    | { questionId: number; userAnswers: string[] };
 
 export interface SectionCheckAnswerData {
     correct: boolean;
     correctAnswer?: string;
+    correctAnswers?: string[];
     explanation?: string | null;
 }
 

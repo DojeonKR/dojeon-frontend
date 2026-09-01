@@ -66,6 +66,7 @@ export interface PracticeQuestionModel {
     type: 'choice' | 'blank' | 'free'
     options: string[]
     answer: string | null
+    blankCount: number
 }
 
 // 한 연습 문항을 화면 모델로 바꾼 것. 자료(contentText.practices)와 문항 API(SectionQuestion)
@@ -82,6 +83,9 @@ export interface PracticeItemModel {
     hasImagePlaceholder: boolean
     prefix: string
     suffix: string
+    // 빈칸 사이의 문장 조각. 길이는 blankCount + 1
+    blankParts: string[]
+    blankCount: number
     options: string[]
     answers: string[]
     // free 연습은 정답이 아니라 모범 답안(sample)만 오므로 정/오답을 매기지 않는다.

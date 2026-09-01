@@ -223,6 +223,9 @@ function normalizeSectionQuestion(raw: Record<string, unknown>): SectionQuestion
         type: String(raw.type ?? ''),
         questionText: String(raw.questionText ?? ''),
         options: Array.isArray(raw.options) ? raw.options.map((option) => String(option)) : [],
+        blankCount: Number.isFinite(Number(raw.blankCount))
+            ? Math.max(1, Math.trunc(Number(raw.blankCount)))
+            : 1,
         answer: typeof answer === 'string' && answer.length > 0 ? answer : null,
         explanation: typeof raw.explanation === 'string' ? raw.explanation : null,
     }
